@@ -219,7 +219,8 @@
     Допустимыми типами являются <em>[% terms.bug %]</em> или <em>приложение</em>.
   
   [% ELSIF error == "invalid_field_name" %]
-    Недопустимый формат имени поля [% field FILTER html %].
+    [% title = "Ошибка в имени поля" %]
+    Недопустимый формат имени поля [% field.truncate(30, "...") FILTER html %].
 
   [% ELSIF error == "jobqueue_insert_failed" %]
    [% title = "Ошибка очереди заданий" %]
@@ -388,7 +389,7 @@
     
   [% ELSIF error == "search_field_operator_unsupported" %]
     [% terms.Bugzilla %] не поддерживает тип поиска
-    "[% operator FILTER html %]".
+    "[% operator.truncate(30, "...") FILTER html %]".
 
   [% ELSE %]
     [%# Try to find hooked error messages %]

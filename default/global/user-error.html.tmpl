@@ -1732,7 +1732,7 @@
 
   [% ELSIF error == "unknown_action" %]
     [% IF action %]
-       Неизвестное действие [% action FILTER html %]!
+       Неизвестное действие [% action.truncate(20, "...") FILTER html %]!
     [% ELSE %]
        Действие не задано.
     [% END %]
