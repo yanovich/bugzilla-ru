@@ -1,0 +1,31 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[% PROCESS global/variables.none.tmpl %]
+
+[% PROCESS global/header.html.tmpl
+   title = "Поиск приложения",
+   onload = "document.forms['choose-id'].id.focus()"
+ %]
+
+<form name="choose-id" method="get" action="attachment.cgi">
+  <p>Доступ к приложению по его номеру:</p>
+  <p>ID приложения: <input name="id" size="6">
+  <button name="action" value="edit" id="edit">Изменить</button>
+  <button name="action" value="view" id="view">Перейти</button>
+  </p>
+</form>
+
+<form method="get" action="show_bug.cgi">
+  <p>Доступ через список приложений [% terms.bug_gen %]:</p>
+  <p>Номер [% terms.bug_gen %]: <input name="id" size="6">
+  <input type="submit" name="action" value="Перейти" id="action">
+  </p>
+</form>
+
+[% PROCESS global/footer.html.tmpl %]

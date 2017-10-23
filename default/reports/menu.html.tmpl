@@ -1,0 +1,78 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# INTERFACE:
+  # This template has no interface. It's a list of the available report
+  # types in Bugzilla.
+  #%]
+
+[% PROCESS global/variables.none.tmpl %]
+
+[% PROCESS global/header.html.tmpl
+  title = "Подготовка отчетов и диаграмм"
+  doc_section = "reporting.html"
+  style_urls = ['skins/standard/reports.css']
+%]
+
+<p>
+  [% terms.Bugzilla %] позволяет анализировать состояние базы данных 
+  [% terms.bugs_gen %] несколькими способами.
+</p>
+
+<h2>Текущее состояние</h2>
+
+<ul>
+  <li id="report_search">
+    <strong><a href="query.cgi">Поиск</a></strong> -
+     просмотр списков [% terms.bugs_gen %].
+  </li>
+  <li id="report_tabular">
+    <strong>
+      <a href="query.cgi?format=report-table">Отчеты</a>
+    </strong> -
+    таблицы количества [% terms.bugs_gen %] в 1, 2 или 3 измерениях, в формате HTML или CSV.
+  </li>
+  [% IF feature_enabled('graphical_reports') %]
+    <li id="report_graphical">
+      <strong>
+        <a href="query.cgi?format=report-graph">Диаграммы</a>
+      </strong> -
+      графики, гистограммы и круговые диаграммы.
+    </li>
+  [% END %]
+  <li id="report_duplicates">
+    <strong><a href="duplicates.cgi">Дубли</a></strong> -
+    список наиболее часто регистрируемых [% terms.bugs_gen %].
+  </li>  
+  [% Hook.process('current_state') %]
+</ul>
+
+[% IF feature_enabled('new_charts') OR feature_enabled('old_charts') %]
+  <h2>Динамика изменений</h2>
+
+  <ul>
+    [% IF feature_enabled('old_charts') %]
+      <li id="old_charts">
+        <strong><a href="reports.cgi">Старый способ</a></strong> - 
+        графики состояний и решений [% terms.bugs_gen %] вдоль 
+        оси времени, для каждого объекта.
+      </li>
+    [% END %]
+    [% IF feature_enabled('new_charts') AND user.in_group(Param("chartgroup")) %]
+      <li id="new_charts">
+        <strong><a href="chart.cgi">Новый способ</a></strong> - 
+        результат любого условия отбора во времени. Гораздо более 
+        мощный инструмент.
+      </li>
+    [% END %]
+  </ul>
+[% END %]
+
+[% Hook.process('end') %]
+
+[% PROCESS global/footer.html.tmpl %]

@@ -1,0 +1,467 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# INTERFACE:
+  # header_done: boolean. True if the header has already been printed.
+  # error: string. The tag of the error.
+  # variables: hash. Useful data about the problem. The keys are the variable
+  #  names, and the values the variable values.
+  #%]
+
+[%# This is a list of all the possible code errors. Please keep them in
+  # alphabetical order by error tag, and leave a blank line between errors.
+  #
+  # Note that you must explicitly filter every single template variable
+  # in this file; if you do not wish to change it, use the "none" filter.
+  #%]
+
+[% PROCESS "global/field-descs.none.tmpl" %]
+
+[% DEFAULT title = "Внутренняя ошибка" %]
+
+[% error_message = BLOCK %]
+  [% IF error == "auth_invalid_email" %]
+    [% title = "Недопустимый адрес электронной почты" %]
+    Адрес электронной почты (<b>[% addr FILTER html %]</b>),
+    указанный при создании или изменении учетной записи,
+    не прошел проверки на допустимость:
+    [% IF default %]
+      Адрес должен содержать в точности один символ '@',
+      и по меньшей мере один символ '.' после '@'.
+    [% ELSE %]
+      [%+ Param('emailregexpdesc') FILTER html_light %]
+    [% END %]
+    Также адрес не должен содержать запрещённых символов.
+
+  [% ELSIF error == "authres_unhandled" %]
+    Код возврата процедуры авторизации [% value FILTER html %] не обработан 
+    процедурой входа в систему.
+
+  [% ELSIF error == "bad_arg" %]
+    Недопустимый аргумент <code>[% argument FILTER html %]</code>
+    при вызове функции <code>[% function FILTER html %]</code>.
+
+  [% ELSIF error == "bug_error" %]
+    Внутренняя ошибка [% bug.error FILTER html %] при обращении 
+    к [% terms.bug_dat %] [%+ bug.bug_id FILTER html %] .
+    
+  [% ELSIF error == "chart_data_not_generated" %]
+    [% admindocslinks = {'extraconfig.html' => 'Настройка диаграмм'} %]
+    [% IF product %]
+      Диаграммы для объекта <em>[% product FILTER html %]</em> не могут
+      быть построены, поскольку с момента создания объекта не собрано
+      достаточно статистических данных.
+    [% ELSE %]
+    Данные счетчиков [% terms.bugs_gen %] еще не собраны.
+    [% END %]
+    Попробуйте еще раз через день.
+    Если вы видите данное сообщение повторно через несколько дней, 
+    обратитесь к администратору системы <a href="mailto:[% Param('maintainer') %]">[% Param('maintainer') %]</a>
+    и опишите ситуацию.
+
+  [% ELSIF error == "chart_datafile_corrupt" %]
+    Файл данных диаграммы [% file FILTER html %] поврежден.
+        
+  [% ELSIF error == "chart_dir_nonexistent" %]
+    Один из каталогов <tt>[% dir FILTER html %]</tt> или
+    <tt>[% graph_dir FILTER html %]</tt> не существует.
+  
+  [% ELSIF error == "chart_file_open_fail" %]
+    Ошибка открытия файла данных диаграммы <tt>[% filename FILTER html %]</tt>.
+ 
+  [% ELSIF error == "column_alter_nonexistent_fk" %]
+    Вы попытались изменить чужой ключ для 
+    [%+ table FILTER html %].[% column FILTER html %], но в этом
+    столбце нет чужого ключа.
+
+  [% ELSIF error == "column_not_null_without_default" %]
+    Ошибка добавления поля [% name FILTER html %]:
+    Невозможно добавить в таблицу поле NOT NULL без значения по умолчанию,
+    укажите значение аргумента <code>$init_value</code>.
+
+  [% ELSIF error == "column_not_null_no_default_alter" %]
+    Невозможно объявить поле [% name FILTER html %] NOT NULL 
+    без указания значения по умолчанию или аргумента $set_nulls_to, поскольку
+    среди текущих значений есть NULL.
+
+  [% ELSIF error == "comment_extra_data_not_allowed" %]
+    Вы попытались присвоить полю <code>extra_data</code> значение 
+    '[% extra_data FILTER html %]', но комментарии с типом [% type FILTER html %]
+    не принимают параметр <code>extra_data</code>.
+
+  [% ELSIF error == "comment_extra_data_required" %]
+    Комментарии с типом [% type FILTER html %] требуют, чтобы был установлен
+    параметр <code>extra_data</code>.
+
+  [% ELSIF error == "comment_extra_data_not_numeric" %]
+    Вы попытались присвоить полю <code>extra_data</code> значение
+    '[% extra_data FILTER html %]', но комментарии с типом  [% type FILTER html %]
+    требуют чтобы был установлен численный параметр <code>extra_data</code>.
+
+  [% ELSIF error == "comment_type_invalid" %]
+    Тип комментария '[% type FILTER html %]' недействителен.
+
+  [% ELSIF error == "db_rename_conflict" %]
+    Конфликт имен: невозможно переименовать [% old FILTER html %] в
+    [%+ new FILTER html %], поскольку [% new FILTER html %] уже существует.
+
+  [% ELSIF error == "cookies_need_value" %]
+    Для cookie должно быть установлено значение.
+
+  [% ELSIF error == "env_no_email" %]
+    [% terms.Bugzilla %] не получает из окружения адрес электронной почты
+    [% IF Param("auth_env_email") %]
+      Это означает что переменная окружения '[% Param("auth_env_email") FILTER html %]'
+      не существует или имеет пустое значение.
+    [% ELSE %]
+      Следует установить параметр настройки "auth_env_email", 
+      указав имя переменной окружения, содержащей адрес 
+      электронной почты пользователя.
+    [% END %]
+
+  [% ELSIF error == "extension_must_be_subclass" %]
+    <code>[% package FILTER html %]</code> из 
+    <code>[% filename FILTER html %]</code> не является подклассом
+    <code>[% class FILTER html %]</code>.
+
+  [% ELSIF error == "extension_must_return_name" %]
+    <code>[% extension FILTER html %]</code> возвратил
+    <code>[% returned FILTER html %]</code>, что не является корректным именем
+    для расширения. Расширения должны возвращать своё имя, а не <code>1</code>
+    или число. Для получения более подробной информации обратитесь к документации по
+    <a href="[% docs_urlbase FILTER html %]api/Bugzilla/Extension.html">Bugzilla::Extension</a>.
+
+  [% ELSIF error == "extension_no_name" %]
+    Мы не нашли метод <code>NAME</code> в 
+    <code>[% package FILTER html %]</code> (загруженный из
+    <code>[% filename FILTER html %]</code>). Это значит, что
+    у расширения имеется одна или несколько следующих проблем:
+
+    <ul>
+      <li><code>[% filename FILTER html %]</code> не определяет
+        пакет <code>[% package FILTER html %]</code>.</li>
+      <li><code>[% package FILTER html %]</code> не определяет
+        метод <code>NAME</code> (или же метод <code>NAME</code>
+        вернул пустую строку).</li>
+    </ul>
+
+  [% ELSIF error == "extern_id_conflict" %]
+    Внешний идентификатор '[% extern_id FILTER html %]' уже зарегистрирован 
+    для пользователя '[% username FILTER html %]', но сервер аутентификации 
+    считает его принадлежащим пользователю '[% extern_user FILTER html %]'.
+
+  [% ELSIF error == "field_choice_must_use_type" %]
+    При вызове метода класса <code>Bugzilla::Field::Choice</code>,
+    необходимо вызывать <code>Bugzilla::Field::Choice-&gt;type('some_field')</code>
+    для генерации правильного экземпляра (нельзя вызывать напрямую методы
+    класса Bugzilla::Field::Choice).
+
+  [% ELSIF error == "field_not_custom" %]
+    '[% field.description FILTER html %]' ([% field.name FILTER html %])
+    не является настраиваемым атрибутом.
+
+  [% ELSIF error == "field_type_not_specified" %]
+    [% title = "Не указан тип атрибута" %]
+    Указание типа при создании атрибута обязательно.
+
+  [% ELSIF error == "illegal_field" %]
+    Недопустимое значение поля [% field FILTER html %].
+
+  [% ELSIF error == "invalid_customfield_type" %]
+    [% title = "Недопустимый тип атрибута" %]
+    Тип <em>[% type FILTER html %]</em> не является допустимым.
+
+  [% ELSIF error == "invalid_feature" %]
+    [% title = "Недопустимое имя функционала" %]
+    Имя функционала '[% feature FILTER html %]' недопустимо. Допустимые имена в
+    <code>Bugzilla::Install::Requirements</code> в разделе 
+    <code>OPTIONAL_MODULES</code>.
+
+  [% ELSIF error == "invalid_flag_association" %]
+    [% title = "Недопустимый объект согласования" %]
+    Согласование не может быть выполнено с
+    [% IF attach_id %]
+      приложением [% attach_id FILTER html %].
+    [% ELSE %]
+      [%+ terms.bug_abl %] [%+ bug_id FILTER html %].
+    [% END %]
+
+  [% ELSIF error == "invalid_series_id" %]
+    [% title = "Недопустимая серия" %]
+    Недопустимый код серии [% series_id FILTER html %]. Возможно,
+    серия данных удалена.
+
+  [% ELSIF error == "invalid_timestamp" %]
+    Введённый штамп времени <code>[% timestamp FILTER html %]</code> не удалось
+    преобразовать в действительную дату и время.
+
+  [% ELSIF error == "invalid_webservergroup" %]
+    Группа [% group FILTER html %] не существует. Проверьте значение параметра $webservergroup
+    в [% constants.bz_locations.localconfig FILTER html %].
+
+  [% ELSIF error == "flag_unexpected_object" %]
+    [% title = "Недопустимый объект согласования" %]
+    Согласования невозможны для объектов типа [% caller FILTER html %].
+    Поддерживаются согласования только для [% terms.bugs_gen %] и приложений.
+
+  [% ELSIF error == "flag_type_inactive" %]
+    [% title = "Вид согласования запрещен" %]
+    Вид согласования [% type FILTER html %] запрещен, согласования этого вида
+    не выполняются.
+
+  [% ELSIF error == "flag_type_target_type_invalid" %]
+    Недопустимый тип объекта <em>[% variables.target_type FILTER html %]</em>.
+    Допустимыми типами являются <em>[% terms.bug %]</em> или <em>приложение</em>.
+  
+  [% ELSIF error == "invalid_field_name" %]
+    Недопустимый формат имени поля [% field FILTER html %].
+
+  [% ELSIF error == "jobqueue_insert_failed" %]
+   [% title = "Ошибка очереди заданий" %]
+    Постановка задания <code>[% job FILTER html %]</code> в очередь
+    привела к ошибке: [% errmsg FILTER html %]
+
+  [% ELSIF error == "jobqueue_no_job_mapping" %]
+    Не выполнена настройка <code>Bugzilla::JobQueue</code> для задания
+    "[% job FILTER html %]".  Необходимо добавить этот тип задания
+    в константу <code>JOB_MAP</code> модуля <code>Bugzilla::JobQueue</code>,
+    возможно путём использования хука 'job_map'.
+
+  [% ELSIF error == "ldap_bind_failed" %]
+    Ошибка обращения к серверу LDAP: 
+    <code>[% errstr FILTER html %]</code>
+
+  [% ELSIF error == "ldap_cannot_retreive_attr" %]
+    Указанный атрибут LDAP [% attr FILTER html %] не найден.
+
+  [% ELSIF error == "ldap_connect_failed" %]
+    Ошибка соединения с сервером(серверами) LDAP: <code>[% server FILTER html %]</code>.
+
+  [% ELSIF error == "ldap_start_tls_failed" %]
+    Ошибка защищенного соединения с сервером LDAP: <code>[% error FILTER html %]</code>.
+
+  [% ELSIF error == "ldap_search_error" %]
+    Ошибка поиска 
+    &quot;[% username FILTER html %]&quot; на сервере LDAP: 
+    [% IF errstr %]
+      <code>[% errstr FILTER html %]</code>
+    [% ELSE %]
+      Невозможно найти пользователя в LDAP
+    [% END %]
+
+  [% ELSIF error == "ldap_server_not_defined" %]
+    Не определен сервер LDAP для аутентификации.
+
+  [% ELSIF error == "mail_send_error" %]
+    Ошибка отправки электронной почты от '[% mail.header('From') FILTER html %]'
+    к '[% mail.header('To') FILTER html %]':
+    [%+ msg FILTER html %]
+
+  [% ELSIF error == "missing_series_id" %]
+    При попытке добавления серии данных не получен код серии. 
+    Серия: [% series.category FILTER html %] / 
+    [%+ series.subcategory FILTER html %] / 
+    [%+ series.name FILTER html %].
+    
+  [% ELSIF error == "object_dep_sort_loop" %]
+    В VALIDATOR_DEPENDENCIES имеется петля, включающая
+    '[%+ field FILTER html %]'. Мы приняли во внимание следующие поля:
+    [%+ considered.join(', ') FILTER html %].
+
+  [% ELSIF error == "param_invalid" %]
+    [% title = "Недопустимый параметр" %]
+    Недопустимый параметр <code>[% param FILTER html %]</code> 
+    для функции <code>[% function FILTER html %]</code>.
+
+  [% ELSIF error == "param_must_be_numeric" %]
+    [% title = "Недопустимый параметр" %]
+    Функции [% function FILTER html %] передан недопустимый параметр
+    <code>[% param FILTER html %]</code>. Требуется передать число.
+
+  [% ELSIF error == "param_required" %]
+    [% title = "Параметр не указан" %]
+    Для функции <code>[% function FILTER html %]</code> обязателен аргумент
+    <code>[% param FILTER html %]</code>, аргумент
+    не задан.
+
+  [% ELSIF error == "params_required" %]
+    [% title = "Параметр не указан" %]
+    Для функции <code>[% function FILTER html %]</code> 
+    является обязательным указание одного из параметров:
+    <code>[% params.join(', ') FILTER html %]</code>
+
+  [% ELSIF error == "product_empty_group_controls" %]
+    [% title = "Не установлены права доступа" %]
+    Необходимо установить значения прав доступа для
+    группы [% group.name FILTER html %].
+
+  [% ELSIF error == "product_illegal_group_control" %]
+    [% title = "Недопустимые права доступа" %]
+    Значение '[% value FILTER html %]' недопустимо для
+    поля '[% field FILTER html %]'.
+
+  [% ELSIF error == "protection_violation" %]
+    Функция <code>[% function FILTER html %]</code> вызвана
+
+    [% IF argument %]
+        с аргументом <code>[% argument FILTER html %]</code>
+    [% END %]
+
+    из
+
+    [% IF caller %]
+        <code>[%+ caller FILTER html %]</code>, которая вне
+    [% ELSE %]
+        извне
+    [% END %]
+
+    пакета. Вызов функции разрешен только из 
+    подкласса <code>[% superclass FILTER html %]</code>.
+
+  [% ELSIF error == "radius_preparation_error" %]
+    Ошибка подготовки запроса аутентификации RADIUS:
+    <code>[% errstr FILTER html %]</code>.
+
+  [% ELSIF error == "search_cp_without_op" %]
+    Параметр поиска f[% id FILTER html %] является "CP", но перед ним
+    нет подходящего "OP".
+
+  [% ELSIF error == "search_invalid_joiner" %]
+    '[% joiner FILTER html %]' не является корректным оператором объединения
+    для поиска.
+
+  [% ELSIF error == "setting_info_invalid" %]
+    При создании новой настройки требуется указать название, список значений
+    с ключами сортировки и значение по умолчанию.
+
+  [% ELSIF error == "setting_name_invalid" %]
+    Имя настройки <em>[% name FILTER html %]</em> недопустимо.
+    Имена настроек должны начинаться с латинской буквы, содержать только буквы, 
+    цифры или символы '_', '-', '.', ':'.
+
+  [% ELSIF error == "setting_subclass_invalid" %]
+    Класс настроек
+    <code>[% subclass FILTER html %]</code> не существует.
+
+  [% ELSIF error == "setting_value_invalid" %]
+    Значение "<code>[% value FILTER html %]</code>" не входит в список допустимых
+    значений настройки <em>[% name FILTER html %]</em>.
+
+  [% ELSIF error == "token_generation_error" %]
+    Серьезная ошибка генерации номера жетона.
+
+  [% ELSIF error == "cancel_token_does_not_exist" %]
+    Отменяемый жетон не существует.
+
+  [% ELSIF error == "template_error" %]
+    [% template_error_msg FILTER html %]
+
+  [% ELSIF error == "template_invalid" %]
+    Недопустимое имя файла шаблона в вызове функции: [% name FILTER html %].
+
+  [% ELSIF error == "unable_to_retrieve_password" %]
+     Старый пароль не найден в базе данных.
+
+  [% ELSIF error == "undefined_field" %]
+    Поле формы [% field FILTER html %] не заполнено.
+
+  [% ELSIF error == "unknown_method" %]
+    Не найден запрошенный метод '[% method FILTER html %]'.
+
+  [% ELSIF error == "usage_mode_invalid" %]
+    Недопустимый режим использования '[% invalid_usage_mode FILTER html %]'.
+
+  [% ELSIF error == "must_be_patch" %]
+    [% title = "Приложение не является патчем" %]
+    Приложение #[% attach_id FILTER html %] не является патчем.
+
+  [% ELSIF error == "not_in_transaction" %]
+    Попытка завершения неначатой транзакции.
+
+  [% ELSIF error == "invalid_post_bug_submit_action" %]
+    Недопустимый параметр для post_bug_submit_action
+    
+  [% ELSIF error == "search_field_operator_unsupported" %]
+    [% terms.Bugzilla %] не поддерживает тип поиска
+    "[% operator FILTER html %]".
+
+  [% ELSE %]
+    [%# Try to find hooked error messages %]
+    [% error_message = Hook.process("errors") %]
+    [% IF NOT error_message %]
+      [% title = "Внутренняя ошибка" %]
+      Произошла внутренняя ошибка, код ошибки [% terms.Bugzilla %] 
+      <code>[% error FILTER html %]</code> неизвестен.
+
+      Если Вы пользователь [% terms.Bugzilla %], пожалуйста, сохраните это 
+      сообщение и отправьте его по адресу [% Param('maintainer') %].
+    [% ELSE %]
+      [% error_message FILTER none %]
+    [% END %]
+  [% END %]
+[% END %]
+
+[%# We only want HTML error messages for ERROR_MODE_WEBPAGE %]
+[% USE Bugzilla %]
+[% IF Bugzilla.error_mode != constants.ERROR_MODE_WEBPAGE %]
+  [% IF Bugzilla.usage_mode == constants.USAGE_MODE_BROWSER %]
+    [% error_message FILTER none %]
+  [% ELSE %]
+    [% error_message FILTER txt %]
+  [% END %]
+  [% RETURN %]
+[% END %]
+
+[% UNLESS header_done %]
+  [% PROCESS global/header.html.tmpl %]
+[% END %]
+
+[% PROCESS global/docslinks.html.tmpl
+   docslinks      = docslinks
+   admindocslinks = admindocslinks
+%]
+
+<p>
+  Произошла неожиданная ошибка. Это может быть временной проблемой, или 
+  какой-либо код ведёт себя некорректно. Если эта проблема не прекратится,
+  пожалуйста, отправьте эту страницу по адресу
+  <a href="mailto:[% Param("maintainer") %]">[% Param("maintainer") %]</a>
+  с описанием, того, что вы делали в момент возникновения этого сообщения.
+</p>
+
+<tt>
+  <script type="text/javascript"> <!--
+    document.write("<p>URL: " + 
+                    document.location.href.replace(/&/g,"&amp;")
+                                          .replace(/</g,"&lt;")
+                                          .replace(/>/g,"&gt;") + "</p>");
+  // -->
+  </script>
+</tt>
+
+<table cellpadding="20">
+  <tr>
+    <td id="error_msg" class="throw_error">
+      [% error_message FILTER none %]
+    </td>
+  </tr>
+</table>
+
+<p>Трейсбэк:</p>
+<pre>[% traceback FILTER html %]</pre>
+
+[% IF variables %]
+  <pre>
+Параметры:
+  [% FOREACH key = variables.keys %]
+    [%+ key FILTER html %]: [%+ variables.$key FILTER html %]
+  [% END %]
+  </pre>
+[% END %]
+
+[% PROCESS global/footer.html.tmpl %]

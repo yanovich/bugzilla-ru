@@ -1,0 +1,47 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[% series_name = BLOCK %]
+  [% series.category FILTER html %] /
+  [%+ series.subcategory FILTER html %] /
+  [%+ series.name FILTER html %]
+[% END %]
+
+[% PROCESS global/header.html.tmpl title = "Удаление серии данных"
+                                   style_urls = ['skins/standard/admin.css'] %]
+
+<p>
+  Вы собираетесь удалить серию <b>[% series_name FILTER none %]</b> 
+  из базы данных. Все данные в этой серии будут удалены без возможности восстановления.
+</p>
+<p>
+  [% IF series.creator %]
+    Эта серия данных создана пользователем <a href="mailto:[% series.creator.email FILTER html %]">
+    [% series.creator.email FILTER html %]</a>
+  [% ELSE %]
+    Эта серия данных создана [% terms.Bugzilla %] автоматически
+  [% END %]
+
+  [% IF series.public %]
+    и является общедоступной.
+  [% ELSIF series.creator %]
+    и доступна только этому пользователю.
+  [% ELSE %]
+    и не может быть использована никем.
+  [% END %]
+</p>
+
+<p class="areyoureallyreallysure">Подтвердите удаление серии данных</p>
+
+<p>
+  <a href="chart.cgi?action=delete&amp;series_id=[% series.series_id FILTER html %]&amp;token=
+           [%- issue_hash_token([series.id, series.name]) FILTER uri %]">Да, удалить</a> |
+  <a href="chart.cgi">Нет, вернуться к диаграммам</a>
+</p>
+
+[% PROCESS global/footer.html.tmpl %]

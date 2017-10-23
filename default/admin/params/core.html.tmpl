@@ -1,0 +1,35 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[% 
+   title = "Обязательные настройки"
+   desc = "Параметры, требуемые для работоспособности ${terms.Bugzilla}" 
+%]
+
+[% param_descs = {
+  urlbase => "Адрес URL — общая часть всех адресов HTTP этого " _
+             "экземпляра ${terms.Bugzilla}.",
+
+  sslbase => "Адрес URL — общая часть всех адресов HTTPS этого " _
+             "экземпляра ${terms.Bugzilla} для доступа через SSL.",
+
+  ssl_redirect => 
+    "При включенном параметре весь доступ к $terms.Bugzilla возможен только"
+    _ " через SSL, любые запросы по HTTP будут перенаправлены на HTTPS"
+    _ " с использованием параметра <tt>sslbase</tt>. Кроме того, ссылки в"
+    _ " сообщениях электронной почты будут использовать <tt>sslbase</tt> "
+    _ " вместо <tt>urlbase</tt>.",
+
+  cookiepath => "Путь относительно корня сервера web, которым ограничена " _
+                "видимость cookie ${terms.Bugzilla}. Как правило это часть URI адреса URL " _
+                "системы. Должен начинаться с / (прямой наклонной черты). Например, если " _
+                "адрес сервера ${terms.Bugzilla} — 'http://www.somedomain.com/bugzilla/', установите " _
+                "значение этого параметра /bugzilla/. Установка значения / разрешает " _
+                "всем ресурсам этого сервера или виртуального хоста чтение " _
+                "cookie ${terms.Bugzilla}.",
+} %]

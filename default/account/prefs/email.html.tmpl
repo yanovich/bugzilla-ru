@@ -1,0 +1,297 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# INTERFACE:
+  # watchedusers: string.
+  #               Comma-separated list of email addresses this user watches.
+  # watchers:     array.
+  #               Array of users watching this user's account.
+  # excludeself:  boolean.
+  #               True if user is not receiving self-generated mail.
+  # <rolename>:   Multiple hashes, one for each rolename (e.g. assignee; see
+  #               below), keyed by reasonname (e.g. comments; again, see
+  #               below). The value is a boolean - true if the user is
+  #               receiving mail for that reason when in that role.
+  #%]
+
+[% PROCESS global/variables.none.tmpl %]
+
+[%# If the user's bugmail has been disabled by admins, show a warning. %]
+[% IF user.email_disabled %]
+  <div class="warningmessages">
+    Ваши оповещения об изменениях в [% terms.bugs_obj %] были отключены
+    администратором [% terms.Bugzilla %].  Пожалуйста, свяжитесь с
+    [% Param('maintainer') %], чтобы включить оповещения об изменениях
+    в [% terms.bugs_obj %].
+  </div>
+[% END %]
+
+[% IF user.authorizer.can_change_email && Param('allowemailchange') %]
+  <p>
+    Если вы хотите изменить свой адрес электронной почты
+    <b>[% user.email FILTER html %]</b> на которой приходят уведомления от
+    [% terms.Bugzilla %], щёлкните по расположенной выше вкладке
+    "Учетная запись".
+  </p>
+[% END %]
+
+<p>
+  Если вы не хотите получать оповещение о незначительных изменениях
+  состояния [% terms.bugs_gen %], измените настройки фильтрации
+  некоторых (или всех) сообщений:
+</p>
+
+<script type="text/javascript">
+<!--
+function SetCheckboxes(setting) {
+  for (var count = 0; count < document.userprefsform.elements.length; count++) {
+    var theinput = document.userprefsform.elements[count];
+    if (theinput.type == "checkbox" && !theinput.disabled) {
+      if (theinput.name.match("neg")) {
+        theinput.checked = !setting;
+      }
+      else {
+        theinput.checked = setting;
+      }
+    }
+  }
+}
+
+document.write('<input type="button" value="Разрешить все письма" onclick="SetCheckboxes(true); return false;">\n');
+document.write('<input type="button" value="Запретить все письма" onclick="SetCheckboxes(false); return false;">\n');
+// -->
+</script>
+
+<hr>
+
+<table>
+  <tr>
+    <td colspan="2">
+      <b>Глобальные параметры:</b>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="150"></td>
+    <td>
+      [% prefname = "email-$constants.REL_ANY-$constants.EVT_FLAG_REQUESTED" %]
+      <input type="checkbox" name="[% prefname %]" id="[% prefname %]" 
+        value="1"
+        [% " checked"
+           IF user.mail_settings.${constants.REL_ANY}.${constants.EVT_FLAG_REQUESTED} %]>
+      <label for="[% prefname %]">Сообщать мне, когда кто-то запрашивает моего согласования</label>
+      <br>
+    </td>
+  </tr>
+  <tr>
+    <td width="150"></td>
+    <td>
+      [% prefname = "email-$constants.REL_ANY-$constants.EVT_REQUESTED_FLAG" %]
+      <input type="checkbox" name="[% prefname %]" id="[% prefname %]" 
+        value="1"
+        [% " checked"
+           IF user.mail_settings.${constants.REL_ANY}.${constants.EVT_REQUESTED_FLAG} %]>
+      <label for="[% prefname %]">Сообщать мне, когда кто-то дает запрошенное мной согласование</label>
+      <br>
+    </td>
+  </tr>
+[% IF user.is_global_watcher %]
+  <tr>
+    <td width="150"></td>
+    <td>
+      Вы получаете оповещения о всех [% terms.bugs_acc %].  Для отключения глобального оповещения
+      обратитесь к администратору:
+      <a href="mailto:[% Param("maintainer") %]">[% Param("maintainer") %]</a>.
+    </td>
+  </tr>
+[% END %]
+</table>
+
+<hr>
+<b>Параметры отдельных изменений/ролей:</b>
+<br>
+<br>
+
+[% events = [
+    { id = constants.EVT_ADDED_REMOVED,
+      description = "изменении моей роли в этой ошибке" },
+    { id = constants.EVT_BUG_CREATED,
+      description = "регистрации новой $terms.bug_gen" },
+    { id = constants.EVT_OPENED_CLOSED,
+      description = "принятии или отмене решения" },
+    { id = constants.EVT_COMPONENT,
+      description = "изменении объекта или раздела" },      
+    { id = constants.EVT_PROJ_MANAGEMENT,
+      description = "изменении приоритета, состояния, серьезности и/или сроков" },
+    { id = constants.EVT_COMMENT,
+      description = "добавлении комментариев" },
+    { id = constants.EVT_ATTACHMENT,
+      description = "добавлении приложений" },
+    { id = constants.EVT_ATTACHMENT_DATA,
+      description = "изменении приложений" },
+    { id = constants.EVT_KEYWORD,
+      description = "изменении ключевых слов" },
+    { id = constants.EVT_CC,
+      description = "изменении подписчиков" },
+    { id = constants.EVT_DEPEND_BLOCK,
+      description = "изменении зависимостей" },
+    { id = constants.EVT_OTHER,
+      description = "прочих изменениях" },
+] %]
+
+[% neg_events = [
+    { id = constants.EVT_UNCONFIRMED,
+      description = "неподтвержденных $terms.bugs_gen" },
+    { id = constants.EVT_CHANGED_BY_ME,
+      description = "моих собственных изменений" },
+] %]
+
+[% relationships = [
+    { id = constants.REL_ASSIGNEE,
+      description = "Исполнитель" },
+    { id = constants.REL_REPORTER,
+      description = "Инициатор" },
+    { id = constants.REL_CC,
+      description = "Подписчик" },
+] %]
+
+[% IF Param('useqacontact') %]
+  [% relationships.push({ id = constants.REL_QA, 
+                          description = "Приёмка" }) %]
+[% END %]
+
+
+[%# This is up here so that the "relationships" hook can modify it. %]
+[% no_added_removed = [constants.REL_REPORTER] %]
+
+[% Hook.process('relationships') %]
+
+[% num_columns = relationships.size %]
+
+
+<table class="bz_emailprefs" border="1">
+  <tr>
+    <td colspan="[% num_columns FILTER html %]" align="center" width="50%">
+      <b>Когда я:</b>
+    </td>
+    <td rowspan="2" width="40%">
+      <b>Я должен получать оповещения о:</b>
+    </td>
+  </tr>
+
+  <tr>
+    [% FOREACH relationship = relationships %]
+      <th align="center" width="9%">
+        [% relationship.description FILTER html %]
+      </th>
+    [% END %]
+  </tr>
+  
+  [% FOREACH event = events %]  
+    [% count = loop.count() %]
+    <tr class="bz_row_[% count % 2 == 1 ? "odd" : "even" %]">
+      [% FOREACH relationship = relationships %]
+        <td align="center">
+          <input type="checkbox" 
+            name="email-[% relationship.id %]-[% event.id %]"
+            value="1"
+            [%# The combinations don't always make sense; disable a couple %]
+            [% IF event.id == constants.EVT_ADDED_REMOVED AND 
+                  no_added_removed.contains(relationship.id) 
+            %]
+               disabled
+            [% ELSIF user.mail_settings.${relationship.id}.${event.id} %]
+               checked
+            [% END %]>
+        </td>
+      [% END %]
+      <td>
+        [% event.description FILTER html %]
+      </td>
+    </tr>
+  [% END %]
+  
+  <tr>
+    <td colspan="[% num_columns FILTER html %]" 
+        align="center" width="50%">
+      &nbsp;
+    </td>
+    <td width="40%">
+      <b>кроме (имеет приоритет):</b>
+    </td>
+  </tr>
+
+  [% FOREACH event = neg_events %]  
+    [% count = loop.count() %]
+    <tr class="bz_row_[% count % 2 == 1 ? "odd" : "even" %]">
+      [% FOREACH relationship = relationships %]
+        <td align="center">
+          <input type="checkbox" 
+            name="neg-email-[% relationship.id %]-[% event.id %]"
+            value="1"
+            [% " checked" IF NOT user.mail_settings.${relationship.id}.${event.id} %]>
+        </td>
+      [% END %]
+      <td>
+        [% event.description FILTER html %]
+      </td>
+    </tr>
+  [% END %]
+  
+</table>
+
+<hr>
+<b>Дублирование оповещений</b>
+
+<p>
+Дублирование оповещений полезно, когда вы замещаете других
+пользователей.  Сообщения отправляются в соответствии с <u>вашими</u> 
+настройками но с учетом <u>их</u> ролей по отношению к [% terms.bug_dat %]
+(например, Исполнитель).
+</p>
+
+<p>
+[% IF watchedusers.size %]
+Вы замещаете пользователей:
+  </p>
+  <p>
+    <select id="watched_by_you" name="watched_by_you" multiple="multiple" size="5">
+        [% FOREACH w = watchedusers %]
+           <option value="[% w FILTER html %]">[% w FILTER html %]</option>
+        [% END %]
+    </select> <br />
+    <input type="checkbox" id="remove_watched_users" name="remove_watched_users">
+    <label for="remove_watched_users">Отключить замещение выбранных пользователей</label>
+[% ELSE %]
+Нет замещаемых пользователей.
+[% END %]
+</p>
+
+<p id="new_watched_by_you">Включить замещение (список пользователей через запятую):
+  [% INCLUDE global/userselect.html.tmpl
+     id => "new_watchedusers"
+     name => "new_watchedusers"
+     value => ""
+     size => 60
+     multiple => 5
+  %]
+</p>            
+
+<p id="watching_you">Вас замещают пользователи:<br>
+  [% IF watchers.size %]
+    [% FOREACH watcher = watchers %]
+      [% watcher FILTER html %] <br>
+    [% END %]
+  [% ELSE %]
+    <i>Нет заместителей</i>
+  [% END %]
+</p>
+
+<hr>
+
+<br>

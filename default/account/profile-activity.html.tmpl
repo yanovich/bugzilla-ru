@@ -1,0 +1,73 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# INTERFACE:
+  # otheruser: Bugzilla User Object; The user whose profile activity
+  #                                  we are viewing.
+  #
+  # listselectionvalues: selection values to recreate the current user list.
+  #
+  # profile_changes: An array of hashes containing the following fields:
+  # 
+  #   who: string; login name of who made the change
+  #   activity_when: string; when the change was made
+  #   what: string; the description of the field which was changed
+  #   removed: string; the removed value (maybe empty string)
+  #   added: string; the added value (maybe empty string)
+  #%]
+
+[% title = BLOCK %]
+  Журнал изменений учетной записи '[% otheruser.login FILTER html %]'
+[% END %]
+
+
+[% PROCESS global/header.html.tmpl
+  title = title
+%]
+
+[% PROCESS admin/users/listselectvars.html.tmpl
+  listselectionvalues = listselectionvalues
+%]
+
+[% columns =
+  [{name               => 'who'
+    heading            => 'Кто'
+   }
+   {name               => 'activity_when'
+    heading            => 'Когда'
+   }
+   {name               => 'what'
+    heading            => 'Что'
+    content_use_field  => 1
+   }
+   {name               => 'removed'
+    heading            => 'Удалено'
+   }
+   {name               => 'added'
+    heading            => 'Добавлено'
+   }
+  ]
+%]
+
+[% PROCESS admin/table.html.tmpl
+  columns = columns
+  data    = profile_changes
+%]
+
+<p><a href="editusers.cgi?action=edit&amp;userid=
+  [%- otheruser.id FILTER uri %]"
+  title="Изменить данные пользователя '[% otheruser.login FILTER html %]'">Изменить пользователя</a> или
+  <a title="Поиск пользователей" href="editusers.cgi">Искать другие учетные записи</a>
+  [% IF listselectionvalues.matchtype != 'exact' %]
+    или <a title="Вернуться к списку пользователей"
+       href="editusers.cgi?action=list[% INCLUDE listselectionurlparams %]">вернуться
+    к списку пользователей</a>
+  [% END %]
+</p>
+
+[% PROCESS global/footer.html.tmpl %] 

@@ -1,0 +1,43 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+[%
+   title = "RADIUS"
+   desc = "Настройки, необходимые для использования аутентификации RADIUS"
+%]
+
+[% param_descs = {
+  RADIUS_server => "Имя (и, возможно, порт) сервера RADIUS " _
+                   "(например, <code>radius.company.com</code>, или " _
+                   "<code>radius.company.com:portnum</code>).<br>" _
+                   "Обязателен, если " _
+                   "<a href=\"?section=auth#user_verify_class_desc\">параметр " _
+                   "<code>user_verify_class</code></a> включает в себя " _
+                   "<code>RADIUS</code>.",
+
+  RADIUS_secret => "Пароль на сервере RADIUS.<br>" _
+                   "Обязателен, если " _
+                   "<a href=\"?section=auth#user_verify_class_desc\">параметр " _
+                   "<code>user_verify_class</code></a> включает в себя " _
+                   "<code>RADIUS</code>.",
+
+  RADIUS_NAS_IP => "Атрибут NAS-IP-Address, используемый в обмене данными " _
+                   "с сервером RADIUS. " _
+                   "По умолчанию используется <code>127.0.0.1</code>.<br>" _
+                   "Параметр имеет смысл, если " _
+                   "<a href=\"?section=auth#user_verify_class_desc\">параметр " _
+                   "<code>user_verify_class</code></a> включает в себя " _
+                   "<code>RADIUS</code>.",
+
+  RADIUS_email_suffix => "Суффикс, добавляемый к имени пользователя RADIUS для " _
+                         "формирования адреса электронной почты.<br>" _
+                         "Параметр имеет смысл, если " _
+                         "<a href=\"?section=auth#user_verify_class_desc\">параметр " _
+                         "<code>user_verify_class</code></a> включает в себя " _
+                         "<code>RADIUS</code>.",
+  }
+%]

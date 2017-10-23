@@ -1,0 +1,333 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[% PROCESS global/variables.none.tmpl %]
+
+[% san_message = BLOCK %]
+  [% IF san_tag == "checks_start" %]
+    Запуск проверки целостности.
+
+  [% ELSIF san_tag == "checks_completed" %]
+    Проверка целостности завершена.
+
+  [% ELSIF san_tag == "attachment_reference_deletion_start" %]
+    Удаляем ссылки на несуществующие приложения.
+
+  [% ELSIF san_tag == "attachment_reference_deletion_end" %]
+    Все ссылки на несуществующие приложения удалены.
+
+  [% ELSIF san_tag == "bug_check_alert" %]
+    [% errortext FILTER html %]: [% INCLUDE bug_list badbugs = badbugs %]
+
+  [% ELSIF san_tag == "bug_check_repair" %]
+    <a href="sanitycheck.cgi?[% param FILTER uri %]=1&amp;token=
+       [%- issue_hash_token(['sanitycheck']) FILTER uri %]">[% text FILTER html %]</a>.
+
+  [% ELSIF san_tag == "bug_check_creation_date" %]
+    Поиск [% terms.bugs_gen %] без даты регистрации (такие [% terms.bugs %] невидимы).
+
+  [% ELSIF san_tag == "bug_check_creation_date_error_text" %]
+    [% terms.Bugs %] без даты регистрации
+
+  [% ELSIF san_tag == "bug_check_creation_date_repair_text" %]
+    Восстановление даты регистрации для этих [% terms.bugs_gen %]
+
+  [% ELSIF san_tag == "bug_check_bugs_fulltext" %]
+    Поиск [% terms.bugs_gen %], не охваченных полнотекстовым поиском.
+
+  [% ELSIF san_tag == "bug_check_bugs_fulltext_error_text" %]
+    [% terms.Bugs %], не охваченные полнотекстовым поиском
+
+  [% ELSIF san_tag == "bug_check_bugs_fulltext_repair_text" %]
+    Включение [% terms.bugs_gen %] в полнотекстовый поиск
+
+  [% ELSIF san_tag == "bug_check_res_dupl" %]
+    Проверка дублирующих [% terms.bugs_gen %]
+
+  [% ELSIF san_tag == "bug_check_res_dupl_error_text" %]
+    В таблице дубликатов найдены [% terms.bugs %], не отмеченные как дублирующие
+
+  [% ELSIF san_tag == "bug_check_res_dupl_error_text2" %]
+    Найдены [% terms.bugs %] с решением "Дублирование", не упомянутые в таблице дубликатов
+
+  [% ELSIF san_tag == "bug_check_status_res" %]
+    Проверка состояний и решений
+
+  [% ELSIF san_tag == "bug_check_status_res_error_text" %]
+    Найдены [% terms.bugs %] в открытых состояниях с указанным решением
+
+  [% ELSIF san_tag == "bug_check_status_res_error_text2" %]
+    Найдены [% terms.bugs %] в закрытых состояниях без указания решения
+
+  [% ELSIF san_tag == "bug_check_status_everconfirmed" %]
+    Проверка состояния подтверждения
+
+  [% ELSIF san_tag == "bug_check_status_everconfirmed_error_text" %]
+    Найдены [% terms.bugs %] в состоянии "Не подтверждена" но с флагом подтверждения
+
+  [% ELSIF san_tag == "bug_check_status_everconfirmed_error_text2" %]
+    Найдены [% terms.bugs %] в подтвержденнном состоянии но без флага подтверждения
+
+  [% ELSIF san_tag == "bug_check_control_values" %]
+    Поиск недопустимых значений записей управления доступом
+
+  [% ELSIF san_tag == "bug_check_control_values_alert" %]
+    [% numeral( entries,
+      "Найдено $entries недопустимое значение записи управления доступом",
+      "Найдено $entries недопустимых значения записей управления доступом",
+      "Найдено $entries недопустимых значений записей управления доступом")
+    FILTER html %]
+
+  [% ELSIF san_tag == "bug_check_control_values_violation" %]
+    Поиск [% terms.bugs_gen %] с нарушениями прав доступа по группам
+
+  [% ELSIF san_tag == "bug_check_control_values_error_text" %]
+    Найдены группы, недопустимые для соответствующих объектов
+
+  [% ELSIF san_tag == "bug_check_control_values_repair_text" %]
+    Разрешаем недопустимые группы для соответствующих объектов
+    (устанавливаем значение <code>Разрешено</code>)
+
+  [% ELSIF san_tag == "bug_check_control_values_error_text2" %]
+    Поиск несуществующих групп, обязательных для объектов.
+
+  [% ELSIF san_tag == "bug_creation_date_start" %]
+    Восстановление отсутствующих дат регистрации [% terms.bugs_gen %].
+
+  [% ELSIF san_tag == "bug_creation_date_fixed" %]
+    [% numeral( bug_count,
+      "$bug_count $bug исправлена",
+      "$bug_count $bug_gen исправлено",
+      "$bug_count $bugs_gen исправлено")
+    FILTER html %]
+
+  [% ELSIF san_tag == "bugs_fulltext_start" %]
+    OK, индексируем [% terms.bugs %] для полнотекстового поиска.
+
+  [% ELSIF san_tag == "bugs_fulltext_fixed" %]
+    [% numeral( bug_count,
+      "$bug_count $bug исправлена",
+      "$bug_count $bug_gen исправлено",
+      "$bug_count $bugs_gen исправлено")
+    FILTER html %]
+
+  [% ELSIF san_tag == "bug_reference_deletion_start" %]
+    Удаляем ссылки на несуществующие [% terms.bugs %].
+
+  [% ELSIF san_tag == "bug_reference_deletion_end" %]
+    Все ссылки на несуществующие [% terms.bugs %] удалены.
+
+  [% ELSIF san_tag == "cross_check_to" %]
+    Проверка ссылок на [% table FILTER html %].[% field FILTER html %]...
+
+  [% ELSIF san_tag == "cross_check_from" %]
+    ... из [% table FILTER html %].[% field FILTER html %].
+
+  [% ELSIF san_tag == "cross_check_alert" %]
+    Недопустимое значение '[% value FILTER html %]' в поле
+    [%+ table FILTER html %].[% field FILTER html %]
+    [% IF keyname %]
+      [% IF keyname == "bug_id" %]
+        ([% PROCESS bug_link bug_id = key %])
+      [% ELSE %]
+        ([% keyname FILTER html %] == '[% key FILTER html %]')
+      [% END %]
+    [% END %]
+
+  [% ELSIF san_tag == "cross_check_attachment_has_references" %]
+    <a href="sanitycheck.cgi?remove_invalid_attach_references=1&amp;token=
+       [%- issue_hash_token(['sanitycheck']) FILTER uri %]">Удалить
+    ссылки на несуществующие приложения.</a>
+
+  [% ELSIF san_tag == "cross_check_bug_has_references" %]
+    <a href="sanitycheck.cgi?remove_invalid_bug_references=1&amp;token=
+        [%- issue_hash_token(['sanitycheck']) FILTER uri %]">Удалить
+    ссылки на несуществующие [% terms.bugs %].</a>
+
+  [% ELSIF san_tag == "double_cross_check_to" %]
+    Проверка ссылок на [% table FILTER html %].[% field1 FILTER html %] /
+    [%+ table FILTER html %].[% field2 FILTER html %]...
+
+  [% ELSIF san_tag == "double_cross_check_from" %]
+    ... из [% table FILTER html %].[% field1 FILTER html %] /
+    [%+ table FILTER html %].[% field2 FILTER html %].
+
+  [% ELSIF san_tag == "double_cross_check_alert" %]
+    Недопустимые значения '[% value1 FILTER html %]', '[% value2 FILTER html %]' в 
+    полях [% table FILTER html %].[% field1 FILTER html %] /
+    [%+ table FILTER html %].[% field2 FILTER html %].
+    [% IF keyname %]
+      [% IF keyname == "bug_id" %]
+        ([% PROCESS bug_link bug_id = key %])
+      [% ELSE %]
+        ([% keyname FILTER html %] == '[% key FILTER html %]')
+      [% END %]
+    [% END %]
+
+  [% ELSIF san_tag == "everconfirmed_start" %]
+    Проверка состояния флага подтверждения.
+
+  [% ELSIF san_tag == "everconfirmed_end" %]
+    флаги подтверждения проверены.
+
+  [% ELSIF san_tag == "flag_check_start" %]
+    Поиск согласований, не определенных для указанного объекта/раздела.
+
+  [% ELSIF san_tag == "flag_deletion_start" %]
+    Удаление недопустимых согласований.
+
+  [% ELSIF san_tag == "flag_deletion_end" %]
+    Недопустимые согласования удалены.
+
+  [% ELSIF san_tag == "flag_alert" %]
+    Недопустимое согласование [% flag_id FILTER html %] для 
+    [% IF attach_id %]
+      приложения [% attach_id FILTER html %] in
+    [% END %]
+    [%+ PROCESS bug_link bug_id = bug_id %].
+
+  [% ELSIF san_tag == "flag_fix" %]
+    <a href="sanitycheck.cgi?remove_invalid_flags=1&amp;token=
+       [%- issue_hash_token(['sanitycheck']) FILTER uri %]">Удалить
+    недопустимые согласования</a>
+
+  [% ELSIF san_tag == "group_control_map_entries_creation" %]
+    Генерация записей доступа <code>Разрешено</code> 
+    для комбинаций группа/объект без соответствующих записей.
+
+  [% ELSIF san_tag == "group_control_map_entries_update" %]
+    Замена записи <code>Запрещено/<em>xxx</em></code> 
+    для группы <em>[% group_name FILTER html %]</em> на 
+    <code>Разрешено/<em>xxx</em></code> в объекте
+    <em>[% product_name FILTER html %]</em>.
+
+  [% ELSIF san_tag == "group_control_map_entries_generation" %]
+    Установка записи <code>Разрешено/Запрещено</code> 
+    для группы <em>[% group_name FILTER html %]</em> в объекте
+    <em>[% product_name FILTER html %]</em>.
+
+  [% ELSIF san_tag == "group_control_map_entries_repaired" %]
+    [% numeral( counter,
+      "Исправлена $counter недопустимая запись доступа",
+      "Исправлено $counter недопустимых записи доступа",
+      "Исправлено $counter недопустимых записей доступа")
+    FILTER html %]
+
+  [% ELSIF san_tag == "keyword_check_start" %]
+    Проверка таблицы ключевых слов.
+
+  [% ELSIF san_tag == "keyword_check_alert" %]
+    Дублирование записи keyworddefs с кодом [% id FILTER html %].
+
+  [% ELSIF san_tag == "keyword_check_invalid_name" %]
+    Неверное имя в keyworddefs для кода [% id FILTER html %].
+
+  [% ELSIF san_tag == "keyword_check_invalid_id" %]
+    Неверные коды [% id FILTER html %] в таблице ключевых слов.
+
+  [% ELSIF san_tag == "keyword_check_duplicated_ids" %]
+    Дублирование ключевых слов в [% PROCESS bug_link bug_id = id %].
+
+  [% ELSIF san_tag == "profile_login_start" %]
+    Проверка учетных записей.
+    
+  [% ELSIF san_tag == "product_alert" %]
+    Объект <a href="editproducts.cgi?product=[% name FILTER html%]">
+    [%- name FILTER html %]</a> не имеет разделов или версий.
+
+  [% ELSIF san_tag == "product_check_start" %]
+    Проверка объектов без разделов или версий.
+
+  [% ELSIF san_tag == "profile_login_alert" %]
+    Недопустимый адрес электронной почты, id=[% id FILTER html %],
+    &lt;[% email FILTER html %]&gt;.
+
+  [% ELSIF san_tag == "repair_bugs" %]
+    Откорректировать эти  [% terms.bugs %].
+
+  [% ELSIF san_tag == "send_bugmail_start" %]
+    Попытка отправки задержанных оповещений.
+
+  [% ELSIF san_tag == "send_bugmail_status" %]
+    [% numeral( bug_count,
+      "Обнаружена $bug_count $terms.bug",
+      "Обнаружено $bug_count $terms.bug_gen",
+      "Обнаружено $bug_count $terms.bugs_gen")
+    FILTER html %] с задержанных оповещениями.
+
+  [% ELSIF san_tag == "send_bugmail_end" %]
+    Задержанные оповещения отправлены.
+
+  [% ELSIF san_tag == "unsent_bugmail_check" %]
+    Проверка задержанных оповещений
+
+  [% ELSIF san_tag == "unsent_bugmail_alert" %]
+    [% terms.Bugs %] с изменениями, но без отправленных оповещений за
+    последние полчаса: [% INCLUDE bug_list badbugs = badbugs %]
+
+  [% ELSIF san_tag == "unsent_bugmail_fix" %]
+    <a href="sanitycheck.cgi?rescanallBugMail=1&amp;token=
+       [%- issue_hash_token(['sanitycheck']) FILTER uri %]">Отправить оповещения</a>.
+
+  [% ELSIF san_tag == "whines_obsolete_target_deletion_start" %]
+    OK, удаляем несуществующих пользователей и группы из оповещений.
+
+  [% ELSIF san_tag == "whines_obsolete_target_deletion_end" %]
+    Несуществующие пользователи и группы удалены из оповещений.
+
+  [% ELSIF san_tag == "whines_obsolete_target_start" %]
+    Поиск оповещений для несуществующих пользователей и групп.
+
+  [% ELSIF san_tag == "whines_obsolete_target_alert" %]
+    [% FOREACH schedule = schedules %]
+      [% (type == constants.MAILTO_USER) ? "Несуществующий пользователь" : "Несуществующая группа" FILTER html %]
+      [%+ schedule.1 FILTER html %] для оповещения [% schedule.0 FILTER html %]<br>
+    [% END %]
+
+  [% ELSIF san_tag == "whines_obsolete_target_fix" %]
+    <a href="sanitycheck.cgi?remove_old_whine_targets=1&amp;token=
+       [%- issue_hash_token(['sanitycheck']) FILTER uri %]">Удалить 
+    несуществующих пользователей или группы из оповещений</a>
+    
+      [% ELSE %]
+    [% message = Hook.process("statuses") %]
+
+    [% IF message %]
+      [% message FILTER none %]
+    [% ELSE %]
+      Строка статусного сообщения <code>[% san_tag FILTER html %]</code> не найдена.
+      Пожалуйста, отправьте письмо по адресу [% Param("maintainer") %] с описанием
+      шагов произведённых для получения этого сообщения.
+    [% END %]  
+
+  [% END %]
+[% END %]
+
+[% USE Bugzilla %]
+[% IF Bugzilla.usage_mode == constants.USAGE_MODE_CMDLINE %]
+  [% san_message FILTER none %]
+[% ELSE %]
+  [%# Avoid the txt filter in message.txt.tmpl. %]
+  [% san_message FILTER html %]
+[% END %]
+
+[% BLOCK bug_list %]
+  [% FOREACH bug_id = badbugs %]
+    [%# Do not use FILTER bug_link() here, because bug_link() calls get_text()
+     # which itself calls this template again, generating a recursion error.
+     # I doubt having a tooltip with the bug status and summary is so
+     # important here anyway, as you can click the "(as buglist)" link. %]
+    <a href="show_bug.cgi?id=[% bug_id FILTER uri %]">[% bug_id FILTER html %]</a>
+    [% ", " IF !loop.last %]
+  [% END %]
+  (<a href="buglist.cgi?bug_id=[% badbugs.join(",") FILTER uri %]">в виде списка [% terms.bugs_gen %]</a>).
+[% END %]
+
+[% BLOCK bug_link %]
+  <a href="show_bug.cgi?id=[% bug_id FILTER uri %]">[% terms.bug %] [%+ bug_id FILTER html %]</a>
+[% END %]

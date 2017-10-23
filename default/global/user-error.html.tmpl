@@ -1,0 +1,1969 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# INTERFACE:
+  # header_done: boolean. True if the Bugzilla header has already been printed.
+  # error: string. The tag of the error, or the error message to be displayed
+  # (deprecated). May contain HTML if it's an error message.
+  #%]
+
+[%# This is a list of all the possible user errors. Please keep them in
+  # alphabetical order by error tag, and leave a blank line between errors.
+  #
+  # Note that you must explicitly filter every single template variable
+  # in this file; if you do not wish to change it, use the "none" filter.
+  #
+  # Extension- or custom-specific error handling  can be easily added 
+  # via hooks: just place additional code into
+  # template/en/hook/global/user-error-errors.html.tmpl
+  # Note: be aware of uniqueness of error string parameter value, since
+  # nobody can guarantee the hook files processing order in the future.
+  #%]
+
+[% PROCESS global/variables.none.tmpl %]
+
+[% PROCESS "global/field-descs.none.tmpl" %]
+
+[% DEFAULT title = "Ошибка" %]
+
+[% error_message = BLOCK %]
+  [% IF    error == "account_creation_disabled" %]
+    [% title = "Регистрация пользователя запрещена" %]
+    Самостоятельная регистрация пользователей запрещена.
+    <hr>
+    Учетные записи создаются администратором. Обратитесь
+    к администратору: [% Param("maintainer") %].
+
+  [% ELSIF error == "account_creation_restricted" %]
+    [% title = "Регистрация пользователей ограничена" %]
+    Самостоятельная регистрация пользователей ограничена.
+    <hr>
+    Обратитесь к вашему администратору или администратору системы
+    ([% Param("maintainer") %]) за разъяснениями о правилах
+    регистрации.
+
+  [% ELSIF error == "account_disabled" %]
+    [% title = "Пользователь заблокирован" %]
+    [% disabled_reason FILTER none %]
+    <hr>
+    Для разблокирования пользователя обратитесь по адресу 
+    [% Param("maintainer") %].
+
+  [% ELSIF error == "account_exists" %]
+    [% title = "Пользователь уже существует" %]
+    Пользователь 
+    [% IF email %]
+      с адресом [% email FILTER html %]
+    [% ELSE %]
+      с таким адресом
+    [% END %]
+    уже существует.
+
+  [% ELSIF error == "account_locked" %]
+    [% title = "Учётная запись заблокирована" %]
+    Ваш IP-адрес ([% ip_addr FILTER html %]) для этой учётной записи был
+    заблокирован и будет разблокирован в [% unlock_at FILTER time %],
+    так как вы превысили максимальное число попыток входа.
+
+  [% ELSIF error == "alias_has_comma_or_space" %]
+    [% title = "Недопустимые символы в имени terms.bug_gen" %]
+    Указанное имя [% terms.bug_gen %], <em>[% alias FILTER html %]</em>,
+    содержит запятые или пробелы.  Имя не может содержать пробелов и запятых,
+    поскольку они используются для разделения имен в списках.
+    Выберите другое имя, без пробелов и запятых.
+
+  [% ELSIF error == "alias_in_use" %]
+    [% title = "Имя уже используется" %]
+    [% IF user.can_see_bug(bug_id) %]
+      [% terms.Bug %] [%+ bug_id FILTER bug_link(bug_id) FILTER none %]
+    [% ELSE %]
+      Другая [% terms.bug %]
+    [% END %]
+    уже использует имя <em>[% alias FILTER html %]</em>.
+    Выберите другое имя.
+
+  [% ELSIF error == "alias_is_numeric" %]
+    [% title = "Число вместо имени" %]
+    Попытка дать [% terms.bug_dat %] имя <em>[% alias FILTER html %]</em>.
+    Имя не может состоять только из цифр, поскольку должно отличаться от 
+    номера [% terms.bug_gen %].  Выберите другое имя, содержащее буквы.
+
+  [% ELSIF error == "alias_too_long" %]
+    [% title = "Слишком длинное имя" %]
+    Имя [% terms.bug_gen %] не может быть длиннее 20 символов.
+    Выберите более короткое имя.
+    
+  [% ELSIF error == "attachment_bug_id_mismatch" %]
+    [% title = "Неверные приложения" %]
+    Вы попытались произвести действие над приложениями из разных [% terms.bugs_gen %].
+    Эта операция требует, чтобы все приложения были из одной [% terms.bug_gen %].
+
+  [% ELSIF error == "auth_cant_create_account" %]
+    [% title = "Регистрация пользователя невозможна" %]
+    Используемая схема аутентификации не допускает создания новых 
+    пользователей средствами [% terms.Bugzilla %]. Для регистрации
+    пользователя обратитесь к администратору системы.
+
+  [% ELSIF error == "auth_failure" %]
+    [% title = "Доступ запрещен" %]
+    [% admindocslinks = {'groups.html' => 'Разграничение доступа'} %]
+    К сожалению,
+    [% IF group %]
+      Вы не включены в группу '[% group FILTER html %]',
+    [% END %]
+
+    [% IF reason %]
+      [% IF group %] и [% END %]
+      [% IF reason == "cant_bless" %]
+        Вам не разрешено управлять включением пользователей в группы,
+      [% ELSIF reason == "not_visible" %]
+        для некоторых групп пользователей установлены ограничения на видимость объектов,
+      [% END %]
+    [% END %]
+
+    [% IF group || reason %] и поэтому [% END %] Вы не можете
+    [% IF action == "access" %]
+      видеть
+    [% ELSIF action == "add" %]
+      создавать
+    [% ELSIF action == "begin" %]
+      запускать
+    [% ELSIF action == "modify" %]
+      изменять
+    [% ELSIF action == "delete" %]
+      удалять
+    [% ELSIF action == "edit" %]
+      создавать, изменять или удалять
+    [% ELSIF action == "run" %]
+      запускать
+    [% ELSIF action == "schedule" %]
+      назначать
+    [% ELSIF action == "search" %]
+      искать
+    [% ELSIF action == "use" %]
+      использовать
+    [% ELSIF action == "approve" %]
+      разрешать
+    [% ELSE %]
+      [%+ Hook.process('auth_failure_action') %]      
+    [% END %]
+
+    [% IF object == "administrative_pages" %]
+      средства администратора
+    [% ELSIF object == "attachment" %]
+      [% IF attach_id %]
+        приложение #[% attach_id FILTER html %]
+      [% ELSE %]
+        это приложение
+      [% END %]
+    [% ELSIF object == "bugs" %]
+      [%+ terms.bugs %]
+    [% ELSIF object == "bug_fields" %]
+      поле [% field_descs.$field FILTER html %]
+    [% ELSIF object == "charts" %]
+      диаграммы
+    [% ELSIF object == "classifications" %]
+      регионы
+    [% ELSIF object == "components" %]
+      разделы
+    [% ELSIF object == "custom_fields" %]
+      атрибуты
+    [% ELSIF object == "field_values" %]
+      значения атрибутов
+    [% ELSIF object == "flagtypes" %]
+      согласования
+    [% ELSIF object == "group_access" %]
+      доступ групп
+    [% ELSIF object == "groups" %]
+      группы
+    [% ELSIF object == "keywords" %]
+      ключевые слова
+    [% ELSIF object == "milestones" %]
+      планы
+    [% ELSIF object == "multiple_bugs" %]
+      несколько [% terms.bugs_gen %] одновременно
+    [% ELSIF object == "parameters" %]
+      параметры системы
+    [% ELSIF object == "products" %]
+      объекты
+    [% ELSIF object == "quips" %]
+      цитаты
+    [% ELSIF object == "reports" %]
+      оповещения
+    [% ELSIF object == "sanity_check" %]
+      проверку целостности
+    [% ELSIF object == "settings" %]
+      настройки пользователей
+    [% ELSIF object == "sudo_session" %]
+      сеанс от имени пользователя
+    [% ELSIF object == "timetracking_summaries" %]
+      сводные отчеты по учету рабочего времени
+    [% ELSIF object == "user" %]
+      [% IF userid %] пользователя '[% userid FILTER html %]'
+      [% ELSE %] указанного пользователя [% END %]
+    [% ELSIF object == "users" %]
+      пользователей
+    [% ELSIF object == "versions" %]
+      версии
+    [% ELSIF object == "workflow" %]
+      настройки состояний
+    [% ELSE %]
+      [%+ Hook.process('auth_failure_object') %]      
+    [% END %].
+
+    [% Hook.process("auth_failure") %]
+    
+  [% ELSIF error == "auth_untrusted_request" %]
+    [% title = "Недоверенный запрос аутентификации" %]
+    Вы пытались войти с использованием учётной записи
+    <em>[% login FILTER html %]</em>, но [% terms.Bugzilla %] не может
+    доверять вашему запросу. Убедитесь, что ваш веб-браузер принимает cookies
+    и что вы не были перенаправлены сюда с внешнего веб-сайта.
+    <a href="index.cgi?GoAheadAndLogIn=1">Щёлкните здесь</a>, если вы
+    действительно хотите войти.
+
+  [% ELSIF error == "attachment_deletion_disabled" %]
+    [% title = "Удаление приложений запрещено" %]
+    Удаление приложений запрещено администратором.
+
+  [% ELSIF error == "attachment_removed" %]
+    [% title = "Приложение удалено" %]
+    Указанное приложение удалено.
+
+  [% ELSIF error == "bad_page_cgi_id" %]
+    [% title = "Некорректный ID страницы" %]
+    ID <code>[% page_id FILTER html %]</code> не является
+    корректным идентификатором страницы.
+
+  [% ELSIF error == "bug_access_denied" %]
+    [% title = "Доступ запрещен" %]
+    [% admindocslinks = {'groups.html' => 'Разграничение доступа'} %]
+    Доступ к [% terms.bug_dat %] [% bug_id FILTER html %] запрещен.
+
+  [% ELSIF error == "bug_access_query" %]
+    [% title = "Доступ запрещен" %]
+    [% docslinks = {'myaccount.html' => 'Создание учетной записи'} %]
+    Доступ к [% terms.bug_dat %] [% bug_id FILTER html %] запрещен.
+    Для доступа к этой [% terms.bug_dat %] следует
+    <a href="show_bug.cgi?id=
+                   [% bug_id FILTER uri %]&amp;GoAheadAndLogIn=1">
+    войти в систему</a> с необходимыми правами доступа.
+
+  [% ELSIF error == "bug_url_invalid" %]
+    [% title = "Недопустимый URL ${terms.bug_gen}" %]
+    <code>[% url FILTER html %]</code> не является допустимой ссылкой на [% terms.bug_acc %].
+    [% IF reason == 'http' %]
+      URL должен начинаться с "http" или "https".
+    [% ELSIF reason == 'path_only' %]
+      Вы должны указать URL целиком.
+    [% ELSIF reason == 'id' %]
+      В этом URL отсутствует номер [% terms.bug_gen %].
+    [% ELSE %]
+      [%+ field_descs.see_also FILTER html %] URLы могут ссылаться на:
+      <ul>
+        <li><code>show_bug.cgi</code> в экземпляре
+          [% terms.Bugzilla %].</li>
+        <li>b[% %]ug на launchpad.net</li>
+        <li>Сообщение о проблеме на code.google.com.</li>
+        <li>b[% %]ug на b[% %]ugs.debian.org.</li>
+        <li>Сообщение о проблеме в экземпляре JIRA.</li>
+        <li>Тикет в экземпляре Trac.</li>
+        <li>b[% %]ug в экземпляре MantisBT.</li>
+        <li>b[% %]ug на sourceforge.net.</li>
+        <li>Сообщение о проблеме на github.com.</li>
+        [% Hook.process('bug_url_invalid_tracker') %]
+      </ul>
+    [% END %]
+
+  [% ELSIF error == "bug_url_too_long" %]
+    [% title = "Недопустимый URL ${terms.bug_gen}" %]
+    URL [%+ terms.bug_gen %] не может быть длиннее 
+    [%+ constants.MAX_BUG_URL_LENGTH FILTER none %] символов.
+    Значение <code>[% url FILTER html %]</code> слишком велико.
+
+  [% ELSIF error == "buglist_parameters_required" %]
+    [% title = "Не указаны критерии поиска" %]
+    [% docslinks = {'query.html' => "Поиск $terms.bugs_gen",
+                    'query.html#list' => "Списки $terms.bugs_gen"} %]
+    Для поиска [% terms.bugs_gen %] или сохранения условий отбора следует 
+    указать критерии.
+    
+  [% ELSIF error == "cc_remove_denied" %]
+    [% title = "В изменении отказано" %]
+    У вас нет прав удалять других людей из списка подписки.
+
+  [% ELSIF error == "chart_too_large" %]
+    [% title = "Превышен максимальный размер диаграммы" %]
+    Максимальный размер диаграммы — 2000 x 2000.
+
+  [% ELSIF error == "comment_id_invalid" %]
+    Недопустимый номер комментария '[% id FILTER html %]'.
+
+  [% ELSIF error == "comment_invalid_isprivate" %]
+    Попытка изменения конфиденциальности комментария '[% id FILTER html %]',
+    однако такого комментария у этой [% terms.bug_gen %] не существует.
+
+  [% ELSIF error == "comment_is_private" %]
+    Комментарий '[% id FILTER html %]' конфиденциален.
+
+  [% ELSIF error == "comment_required" %]
+    [% title = "Требуется комментарий" %]
+    Обязательно указание
+    [% IF old.defined && new.defined %]
+      <b>комментария</b> при изменении [% field_descs.$field FILTER html %]
+      из [% terms.abug %] с [% (old || "(empty)") FILTER html %]
+      на [% (new || "(empty)") FILTER html %].
+    [% ELSIF new %]
+      описания [% terms.bug_gen %].
+    [% ELSE %]
+      <b>комментария</b> по существу изменений.
+    [% END %]
+
+  [% ELSIF error == "comment_too_long" %]
+    [% title = "Превышена максимальная длина комментария" %]
+    Максимальная длина комментария — 
+    [%+ constants.MAX_COMMENT_LENGTH FILTER html %] символов.
+
+  [% ELSIF error == "auth_classification_not_enabled" %]
+    [% title = "Регионы не настроены" %]
+    Возможность использования регионов отключена.
+
+  [% ELSIF error == "classification_name_too_long" %]
+    [% title = "Слишком длинное название региона" %]
+    Наименование региона не может быть длиннее [% constants.MAX_CLASSIFICATION_SIZE FILTER html %]
+    символов. '[% name FILTER html %]' имеет длину ([% name.length %] символов).
+
+  [% ELSIF error == "classification_not_specified" %]
+    [% title = "Название региона обязательно" %]
+    Указание названия региона обязательно.
+
+  [% ELSIF error == "classification_already_exists" %]
+    [% title = "Регион уже существует" %]
+    Регион '[% name FILTER html %]' уже существует.
+
+  [% ELSIF error == "classification_invalid_sortkey" %]
+    [% title = "Недопустимый порядок сортировки для региона" %]
+    Порядок сортировки '[% sortkey FILTER html %]' недопустим.
+    Укажите целое число в интервале от 0 до [% constants.MAX_SMALLINT FILTER html %].
+
+  [% ELSIF error == "classification_not_deletable" %]
+    [% title = "Регион по умолчанию не может быть удален" %]
+    Регион, используемый по умолчанию, не может быть удален.
+
+  [% ELSIF error == "classification_has_products" %]
+     Этому региону принадлежат один или несколько объектов.
+     Перед удалением региона следует перенести эти объекты в 
+     другие регионы.
+
+  [% ELSIF error == "component_already_exists" %]
+    [% title = "Раздел существует" %]
+    Раздел <em>[% name FILTER html %]</em> уже существует
+    для объекта <em>[% product.name FILTER html %]</em>.
+
+  [% ELSIF error == "component_blank_description" %]
+    [% title = "Описание раздела обязательно" %]
+    Для раздела необходимо указать описание.
+
+  [% ELSIF error == "component_blank_name" %]
+    [% title = "Название раздела обязательно" %]
+    Указание названия создаваемого раздела обязательно.
+
+  [% ELSIF error == "component_has_bugs" %]
+    [% title = BLOCK %]Раздел содержит [% terms.bugs %][% END %]
+    Для раздела зарегистрировано [% nb FILTER html %] [%+ terms.bugs_gen %]!
+    Перед удалением раздела эти [% terms.bugs %] следует 
+    переназначить в другие разделы.
+
+  [% ELSIF error == "component_is_last" %]
+    [% title = BLOCK %]Последний раздел в этом объекте[% END %]
+    '[% comp.name FILTER html %]' является последним разделом в
+    объекте '[% comp.product.name FILTER html %]'. Вы не можете его удалить.
+
+  [% ELSIF error == "component_name_too_long" %]
+    [% title = "Слишком длинное название раздела" %]
+    Наименование раздела не может быть длиннее [% constants.MAX_COMPONENT_SIZE FILTER html %]
+    символов. '[% name FILTER html %]' имеет длину [% name.length %].
+
+  [% ELSIF error == "component_need_initialowner" %]
+    [% title = "Требуется указание ответственного" %]
+    Указание ответственного исполнителя для раздела 
+    '[% name FILTER html %]' обязательно.
+
+  [% ELSIF error == "customfield_nonexistent" %]
+    [% title = "Неизвестный атрибут" %]
+    Атрибут '[% name FILTER html %]' не существует.
+
+  [% ELSIF error == "customfield_not_obsolete" %]
+    [% title = "Атрибут активен" %]
+    Настраиваемый атрибут '[% name FILTER html %]' активен.
+    Перед попыткой удаления следует сделать атрибут неактивным.
+
+  [% ELSIF error == "customfield_has_activity" %]
+    [% title = "Атрибут используется" %]
+    Настраиваемый атрибут '[% name FILTER html %]' не может быть удален,
+    поскольку обнаружено его использование.
+
+  [% ELSIF error == "customfield_has_contents" %]
+    [% title = "Атрибут имеет значения" %]
+    Настраиваемый атрибут '[% name FILTER html %]' не может быть удален,
+    поскольку как минимум одна [% terms.bug %] содержит его значение.
+
+  [% ELSIF error == "dependency_loop_multi" %]
+    [% title = "Обнаружена циклическая зависимость" %]
+    Следующие [% terms.bugs %]не могут одновременно зависеть от данной
+    и блокировать ее: 
+    [% FOREACH dep = deps %]
+      [%+ dep FILTER bug_link(dep) FILTER none %]
+    [% END %].
+    Сохранение изменений невозможно из-за появления циклической зависимости.
+
+  [% ELSIF error == "dependency_loop_single" %]
+    [% title = "Обнаружена циклическая зависимость" %]
+    [% terms.Bug %] не может зависеть от себя самой.
+
+  [% ELSIF error == "dupe_id_required" %]
+    [% title = "Укажите номер ${terms.bug_gen}" %]
+    Указание номера [% terms.bug_gen %] обязательно при принятии решения
+    о дублировании этой [% terms.bug_gen %].
+
+  [% ELSIF error == "dupe_not_allowed" %]
+    [% title = "Регистрация дублирования недопустима" %]
+    Про групповом редактировании [% terms.bugs_gen %] регистрация
+    дублирования запрещена.
+
+  [% ELSIF error == "dupe_loop_detected" %]
+    [% title = "Обнаружена циклическая зависимость" %]
+    [% terms.Bug %] [%+ bug_id FILTER html %] не может 
+    дублировать
+    [% IF dupe_of == bug_id %]
+      себя
+    [% ELSE %]
+      [%+ terms.bug_acc %] [%+ dupe_of FILTER html %], во избежание
+      создания циклической зависимости
+    [% END %].
+
+  [% ELSIF error == "email_change_in_progress" %]
+    [% title = "Изменение адреса уже запрошено" %]
+    Изменение адреса уже запрошено, проверьте вашу электронную почту.
+
+  [% ELSIF error == "email_no_body" %]
+    Ваше сообщение не содержит текста.
+
+  [% ELSIF error == "empty_group_description" %]
+    [% title = "Укажите описание группы" %]
+    Описание группы не может быть пустым.
+
+  [% ELSIF error == "empty_group_name" %]
+    [% title = "Укажите название группы" %]
+    Название группы не может быть пустым.
+  
+  [% ELSIF error == "entry_access_denied" %]
+    [% title = "Доступ запрещен" %]
+    [% admindocslinks = {'groups.html' => 'Разграничение доступа'} %]
+    Отсутствуют необходимые права доступа для добавления [% terms.bug_gen %]
+    для объекта [% product FILTER html %].
+
+  [% ELSIF error == "extension_create_no_name" %]
+    Вы должны указать имя вашего расширения в качестве параметра этого скрипта.
+    
+  [% ELSIF error == "extension_disabled" %]
+    [% title = "Extension Disabled" %]
+    Вы не можете получить доступ к этой странице, так как
+    расширение '[% name FILTER html %]' отключено.
+
+  [% ELSIF error == "extension_first_letter_caps" %]
+    Имя вашего расширения должно начинаться с прописной буквы.
+    (Вы указали '[% name FILTER html %]').
+    
+  [% ELSIF error == "feature_disabled" %]
+    Функция [% install_string("feature_$feature") FILTER html %] не доступна
+    в этой инсталляции [% terms.Bugzilla %].
+    [% IF user.in_group('admin') %]
+      Если вы хотите включить эту функцию, запустите
+      <kbd>checksetup.pl</kbd>, чтобы узнать, как установить
+      разделы, необходимые для работы этой функции.
+    [% END %]
+
+  [% ELSIF error == "field_already_exists" %]
+    [% title = "Атрибут уже существует" %]
+    Атрибут '[% field.name FILTER html %]'     
+    ([% field.description FILTER html %]) уже существует.
+    Выберите другое имя.
+
+  [% ELSIF error == "field_cant_control_self" %]
+    [% title = "Атрибут не может управлять собственной видимостью" %]
+    Атрибут [% field.description FILTER html %] не может быть запрограммирован 
+    на зависимость от собственного значения.
+
+  [% ELSIF error == "field_control_must_be_select" %]
+    [% title = "Недопустимый тип атрибута" %]
+    Для управления отображением других атрибутов пригодны только атрибуты
+    со списком допустимых значений. [% field.description FILTER html %]
+    не относится к этому типу.
+
+  [% ELSIF error == "field_invalid_name" %]
+    [% title = "Недопустимое имя атрибута" %]
+    Имя атрибута '[% name FILTER html %]' недопустимо.
+    Имя может содержать только буквы, цифры и символ подчеркивания.
+
+  [% ELSIF error == "field_invalid_sortkey" %]
+    [% title = "Недопустимый порядок сортировки" %]
+    Порядок сортировки [% sortkey FILTER html %] указанный
+    для атрибута не является положительным числом.
+
+  [% ELSIF error == "field_missing_description" %]
+    [% title = "Описание атрибута не указано" %]
+    Указание описания атрибута обязательно.
+
+  [% ELSIF error == "field_long_desc_too_long" %]
+    [% title = "Превышена длина подробного описания поля" %]
+    Длина подробного описания, введённого вами для этого поля, превышает
+    [% constants.MAX_FIELD_LONG_DESC_LENGTH FILTER html %] символов.
+
+  [% ELSIF error == "field_missing_name" %]
+    [% title = "Имя атрибута не указано" %]
+    Указание имени атрибута обязательно.
+
+  [% ELSIF error == "field_value_control_select_only" %]
+    [% title = "Недопустимый тип атрибута управления значениями" %]
+    Для управления отображением значений атрибута пригодны только атрибуты
+    со списком допустимых значений.
+    
+  [% ELSIF error == "field_visibility_values_must_be_selected" %]
+    [% title = "Отсутствуют значения поля видимости" %]
+    Для поля видимости должно быть выбрано по меньшей мере одно значение
+    '[% field.name FILTER html %]'.
+
+  [% ELSIF error == "fieldname_invalid" %]
+    [% title = "Атрибут не существует" %]
+    Атрибут '[% field.name FILTER html %]' не существует или 
+    не может быть настроен через этот интерфейс.
+
+  [% ELSIF error == "fieldvalue_already_exists" %]
+    [% title = "Значение атрибута уже существует" %]
+    Значение '[% value.name FILTER html %]' атрибута 
+    [%+ field.description FILTER html %] уже существует.
+
+  [% ELSIF error == "fieldvalue_is_controller" %]
+    [% title = "Значение управляет видимостью атрибутов" %]
+    Значение '[% value.name FILTER html %]' атрибута 
+    [% value.field.description FILTER html %] не может быть удалено,
+    поскольку от него зависит отображение 
+    [% IF fields.size %]
+      атрибутов:
+      [%+ fields.join(', ') FILTER html %].
+    [% END %]
+    [% ' Также, ' IF fields.size AND vals.size %]
+    [% IF vals.size %]
+      значений:
+      <ul>
+        [% FOREACH field_name = vals.keys %]
+          [% FOREACH val = vals.${field_name} %]
+            <li>[% val.field.name FILTER html %]:
+              '[% val.name FILTER html %]'</li>
+          [% END %]
+        [% END %]
+      </ul>
+    [% END %]
+
+  [% ELSIF error == "fieldvalue_is_default" %]
+    [% title = "Значение атрибута используется по умолчанию" %]
+    Значение '[% value.name FILTER html %]' является умолчанием для 
+    атрибута '[% field.description FILTER html %]' и не подлежит удалению
+    или отключению.
+    [% IF user.in_group('tweakparams') %]
+      Перед удалением следует <a href="editparams.cgi?section=bugfields#
+      [%- param_name FILTER uri %]">изменить</a> значение по умолчанию.
+    [% END %]
+
+  [% ELSIF error == "fieldvalue_name_too_long" %]
+    [% title = "Слишком длинное значение атрибута" %]
+    Значение атрибута не может быть длиннее 
+    [%+ constants.FIELD_VALUE_MAX_SIZE FILTER none %] символов. 
+    '[% value FILTER html %]' имеет длину [% value.length %] символов.
+
+  [% ELSIF error == "fieldvalue_not_editable" %]
+    [% title = "Изменение значения атрибута невозможно" %]
+    Значение '[% old_value.name FILTER html %]' не может быть изменено, 
+    так как является служебным для атрибута '[% field.description FILTER html %]'.
+
+  [% ELSIF error == "fieldvalue_not_deletable" %]
+    [% title = "Удаление значения атрибута невозможно" %]
+    Значение '[% value.name FILTER html %]' не может быть удалено или отключено, 
+    так как является служебным для атрибута '[% field.description FILTER html %]'.
+
+  [% ELSIF error == "fieldvalue_reserved_word" %]
+    [% title = "Зарезервированное значение недопустимо" %]
+    Значение '[% value FILTER html %]' для атрибута
+    '[% field.description FILTER html %]' недопустимо. Это значение зарезервировано.
+    Укажите другое значение.
+
+  [% ELSIF error == "fieldvalue_sortkey_invalid" %]
+    [% title = "Недопустимый порядок сортировки" %]
+    Ключ сортировки '[% sortkey FILTER html %]' атрибута 
+    [%+ field.description FILTER html %] должен быть положительным
+    числом от 0 до [% constants.MAX_SMALLINT FILTER none %].
+
+  [% ELSIF error == "fieldvalue_still_has_bugs" %]
+    [% title = "Удаление значения атрибута недопустимо" %]
+    Удаление значения '[% value.name FILTER html %]' атрибута
+    '[%+ field.description FILTER html %]' невозможно.  Количество [%+ terms.bugs_gen %],
+    использующих значение: [%+ value.bug_count FILTER html %].
+
+  [% ELSIF error == "fieldvalue_undefined" %]
+    [% title = "Неопределенное значение недопустимо" %]
+    Указание значения атрибута обязательно.
+
+  [% ELSIF error == "file_not_specified" %]
+    [% title = "Файл не указан" %]
+    Не указан прилагаемый файл.
+    
+  [% ELSIF error == "filename_not_specified" %]
+    [% title = "Имя файла не указано" %]
+    Необходимо указать имя файла приложения.
+
+  [% ELSIF error == "file_too_large" %]
+    [% title = "Файл слишком велик" %]
+    [%# Convert maxlocalattachment from Mb to Kb %]
+    [% max_local = Param('maxlocalattachment') * 1024 %]
+    [% max_limit = [Param('maxattachmentsize'), max_local] %]    
+    Добавляемый файл имеет размер [% filesize FILTER html %] кбайт.
+    Для приложений установлен предельный размер 
+    [%# Hack to get the max value between both limits %]
+    [%+ max_limit.nsort.last FILTER html %] кбайт. <br>
+    Рекомендуется опубликовать приложение в другом месте 
+    и затем вставить ссылку на этот файл в соответствующее 
+    текстовое поле на странице создания приложения, к которому можно
+    получить доступ, щёлкнув по ссылке "вставьте текст как приложение".
+    <br>Если Вы добавляете изображение, попробуйте сохранить его в более 
+    компактном формате, например, JPG или PNG, и попробуйте снова.
+
+  [% ELSIF error == "flag_requestee_disabled" %]
+    [% title = "Невозможно запросить согласование у конкретного человека" %]
+    Вы не можете запросить у конкретного человека <em>[% type.name FILTER html %]</em>.
+
+  [% ELSIF error == "flag_requestee_needs_privs" %]
+    [% title = "Недостаточно привилегий у адресата согласования" %]
+    [% requestee.identity FILTER html %] не имеет достаточных привилегий для согласования
+    <em>[% flagtype.name FILTER html %]</em>. Выберите пользователя, входящего в группу
+    <em>[% flagtype.grant_group.name FILTER html %]</em>.
+
+  [% ELSIF error == "flag_requestee_unauthorized" %]
+    [% title = "Адресат согласования не имеет доступа" %]
+    [% admindocslinks = {'flags-overview.html#flags-admin'  => 'Управление согласованиями',
+                         'groups.html' => 'Разграничение доступа'} %]
+    [% docslinks = {'flags-overview.html' => 'Согласования: обзор',
+                    'flags.html' => 'Использование согласований'} %]
+
+    Вы запросили у [% requestee.identity FILTER html %]
+    согласование <code>[% flag_type.name FILTER html %]</code> по 
+    [% IF attach_id && attach_id > 0 %] приложению [% attach_id FILTER html %] к [% END %] 
+    [% terms.bug_dat %] [%+ bug_id FILTER html -%],
+    но доступ к данной [% terms.bug_dat %] ограничен определенными группами, 
+    и упомянутый пользователь в данный момент не имеет 
+    доступа к [% terms.bug_dat %].
+    Выберите другого адресата согласования или разрешите доступ к [% terms.bug_dat %] 
+    подписчикам и добавьте пользователя в список подписки.
+
+  [% ELSIF error == "flag_requestee_unauthorized_attachment" %]
+    [% title = "Адресат согласования не имеет доступа" %]
+    [% admindocslinks = {'flags-overview.html#flags-admin'  => 'Управление согласованиями',
+                         'groups.html' => 'Разграничение доступа'} %]
+    [% docslinks = {'flags-overview.html' => 'Согласования: обзор',
+                    'flags.html' => 'Использование согласований'} %]
+
+    Вы запросили у [% requestee.identity FILTER html %]
+    согласование  <code>[% flag_type.name FILTER html %]</code> по 
+    приложению [% attach_id FILTER html %] к 
+    [%+ terms.bug_dat %] [%+ bug_id FILTER html -%],
+    но упомянутое приложение доступно только члена группы [% Param("insidergroup") FILTER html %],
+    в которую упомянутый пользователь не входит. Выберите другого адресата 
+    согласования или обратитесь к администратору для включения пользователя в группу.
+
+  [% ELSIF error == "flag_status_invalid" %]
+    [% title = "Недопустимый статус согласования" %]
+    Статус согласования <em>[% status FILTER html %]</em>
+    [% IF id %]
+      для ID согласования #[% id FILTER html %]
+    [% END %]
+    является недопустимым.
+    
+  [% ELSIF error == "flag_type_cannot_deactivate" %]
+    [% title = "Не удалось деактивировать вид согласования" %]
+    Извините, но вид согласования '[% flagtype.name FILTER html %]' также применяется к
+    некоторым объектам, которые вы не можете видеть, поэтому вам не разрешено
+    его деактивировать.
+
+  [% ELSIF error == "flag_type_cannot_delete" %]
+    [% title = "Удаление вида согласования не разрешено" %]
+    Извините, но вид согласования '[% flagtype.name FILTER html %]' также применяется к
+    некоторым объектам, которые вы не можете видеть, поэтому вам не разрешено
+    его удаление.    
+
+  [% ELSIF error == "flag_type_cc_list_invalid" %]
+    [% title = "Недопустимый список оповещения вида согласования" %]
+    [% admindocslinks = {'flags-overview.html#flags-admin'  => 'Управление согласованиями'} %]
+    Список оповещения [% cc_list FILTER html %] не может быть длиннее 
+    200 символов.
+
+  [% ELSIF error == "flag_type_component_without_product" %]
+    [% title = "Объект не указан" %]
+    Выбор раздела без указания объекта недопустим.
+
+  [% ELSIF error == "flag_type_description_invalid" %]
+    [% title = "Недопустимое описание вида согласования" %]
+    [% admindocslinks = {'flags-overview.html#flags-admin'  => 'Управление согласованиями'} %]
+    Необходимо ввести описание вида согласования.
+
+  [% ELSIF error == "flag_type_name_invalid" %]
+    [% title = "Недопустимое название вида согласования" %]
+    [% admindocslinks = {'flags-overview.html#flags-admin'  => 'Управление согласованиями'} %]
+    Имя <em>[% name FILTER html %]</em> должно иметь длину 1-50 символов
+    и не может содержать пробелов или запятых.
+    
+  [% ELSIF error == "flag_type_not_editable" %]
+    [% title = "Вид согласования не редактируем" %]
+    Вам не разрешено редактировать свойства вида согласования '[% flagtype.name FILTER html %]',
+    так как этот вид согласования недоступен для объектов, которые вы можете администрировать.
+
+  [% ELSIF error == "flag_type_not_multiplicable" %]
+    [% docslinks = {'flags-overview.html' => 'Согласования: обзор',
+                    'flags.html' => 'Использование согласований'} %]
+    Недопустимо одновременное существование нескольких согласований вида
+    <em>[% type.name FILTER html %]</em> 
+    для [% IF attachment %] этого приложения [% ELSE %] этой [%+ terms.bug_gen %] [% END %].
+
+  [% ELSIF error == "flag_update_denied" %]
+    [% title = "Изменение согласования недоступно" %]
+    [% admindocslinks = {'flags-overview.html#flags-admin'  => 'Управление согласованиями',
+                         'groups.html' => 'Разграничение доступа'} %]
+    [% docslinks = {'flags-overview.html' => 'Согласования: обзор',
+                    'flags.html' => 'Использование согласований'} %]
+    Вы пытались [% IF status == "+" %] утвердить [% ELSIF status == "-" %] отклонить
+    [% ELSIF status == "X" %] аннулировать [% ELSE %] запросить [% END %]
+    согласование <code>[% name FILTER html %]
+          [% IF status == "X" %][% old_status FILTER html %][% END %]</code>.
+
+    Доступ запрещен.  Только пользователь с необходимыми разрешениями может выполнить операцию.
+
+  [% ELSIF error == "format_not_found" %]
+    [% title = "Формат не существует" %]
+    Запрошенный формат <em>[% format FILTER html %]</em> не определен 
+    для типа данных <em>[% ctype FILTER html %]</em>.
+    [% IF invalid %]
+      Оба параметра должны содержать только буквы и дефисы.
+    [% END %]
+    
+  [% ELSIF error == "flag_type_sortkey_invalid" %]
+    [% title = "Недопустимый ключ сортировки вида согласования" %]
+    Ключ сортировки <em>[% sortkey FILTER html %]</em> должен быть целым
+    числом от 0 до [% constants.MAX_SMALLINT FILTER none %].
+
+  [% ELSIF error == "freetext_too_long" %]
+    [% title = "Слишком длинный текст" %]
+    Длина текста введенного в поле [% field_descs.$field FILTER html %] — 
+    [% text.length FILTER html %] символов, что превышает максимально 
+    допустимую длину в ([[%+ constants.MAX_FREETEXT_LENGTH FILTER none %] 
+    символов).
+
+  [% ELSIF error == "group_cannot_delete" %]
+    [% title = "Удаление группы невозможно" %]
+    Удаление группы The <em>[% group.name FILTER html %]</em> невозможно, 
+    так как в базе данных содержатся <a href="editgroups.cgi?action=del&amp;group=
+             [%- group.id FILTER uri %]">ссылки</a> на нее.
+    Все ссылки на эту группу должны быть изменены перед удалением.
+
+  [% ELSIF error == "group_exists" %]
+    [% title = "Группа уже существует" %]
+    Группа [% name FILTER html %] уже существует.
+
+  [% ELSIF error == "group_has_special_role" %]
+    [% title = "Удаление группы запрещено" %]
+    [% IF groups.size == 1 %]
+      [% param_obj = "настройке" %]
+      [% param_acc = "настройку" %]
+    [% ELSE %]
+      [% param_obj = "настройках" %]
+      [% param_acc = "настройки" %]
+    [% END %]
+    Группа '[% name FILTER html %]' используется в 
+    '[% groups.join("' and '") FILTER html %]' [% param_obj FILTER html %].
+    Для удаления этой группы следует изменить 
+    [%+ param_acc FILTER html %], указав другие группы.
+
+
+  [% ELSIF error == "group_invalid_removal" %]
+    Попытка удалить [% terms.bug_acc %] [%+ bug_id FILTER html %]
+    из группы '[% name FILTER html %]', но либо эта группа не существует, 
+    либо вам не разрешено удалять [% terms.bugs %] из этой группы в 
+    объекте '[% product FILTER html %]'.
+
+  [% ELSIF error == "group_restriction_not_allowed" %]
+    [% title = "Group Restriction Not Allowed" %]
+    Попытка ограничить доступ к [% bug_id ? "$terms.bug $bug_id" : terms.abug FILTER html %]
+    группой '[% name FILTER html %]', но либо эта группа не существует,
+    либо вам не разрешено ограничивать доступ к [% terms.bugs %] этой группой в 
+    объекте '[% product FILTER html %]'.
+
+  [% ELSIF error == "group_not_specified" %]
+    [% title = "Группа не указана" %]
+    Укажите группу.
+
+  [% ELSIF error == "group_not_visible" %]
+    [% title = "Просмотр группы не разрешен" %]
+    У вас нет прав на просмотр списка членов группы [% group.name FILTER html %].
+
+  [% ELSIF error == "system_group_not_deletable" %]
+    [% title = "Невозможно удаление системной группы" %]
+    Группа <em>[% name FILTER html %]</em> является системной 
+    и не может быть удалена.
+   
+  [% ELSIF error == "illegal_attachment_edit" %]
+    [% title = "Доступ запрещен" %]
+    Недостаточно прав для изменения приложения [% attach_id FILTER html %].
+
+  [% ELSIF error == "illegal_attachment_edit_bug" %]
+    [% title = "Доступ запрещен" %]
+    Недостаточно прав для изменения приложений [% terms.bug_gen %] 
+    [%+ bug_id FILTER html %].
+
+  [% ELSIF error == "illegal_bug_status_transition" %]
+    [% title = "Недопустимое изменение состояния ${terms.bug_gen}" %]
+    [% IF old.defined %]
+      Изменение состояния [% terms.bug_gen %] c 
+      [%+ old.name FILTER html %] на [% new.name FILTER html %] запрещено.
+    [% ELSE %]
+      Регистрация новых [% terms.bugs_gen %] в состоянии 
+      [%+ new.name FILTER html %] запрещена. 
+    [% END %]
+
+  [% ELSIF error == "illegal_change" %]
+    [% title = "Доступ запрещен" %]
+    Попытка изменения значения поля
+    <strong>[% field_descs.$field FILTER html %]</strong>.
+    [% IF oldvalue.defined AND oldvalue != "" %]
+      Старое значение: <em>[% oldvalue.join(', ') FILTER html %]</em>
+    [% END %]
+    [% IF newvalue.defined AND newvalue != "" %]
+      Новое значение: <em>[% newvalue.join(', ') FILTER html %]</em>
+    [% END %]
+    Недостаточно прав: изменить поле в состоянии только
+    [% IF privs < constants.PRIVILEGES_REQUIRED_EMPOWERED %]
+      исполнитель
+      [% IF privs < constants.PRIVILEGES_REQUIRED_ASSIGNEE %]  или инициатор [% END %]
+      [% terms.bug_gen %] или 
+    [% END %]
+    пользователь с достаточными полномочиями.
+
+  [% ELSIF error == "illegal_change_deps" %]
+    [% title = "Изменение зависимости запрещено" %]
+    Попытка изменения поля
+    <strong>[% field_descs.$field FILTER html %]</strong>. 
+    Недостаточно прав доступа к обеим 
+    [% terms.bugs_dat %] для выполнения изменения.
+    
+  [% ELSIF error == "illegal_date" %]
+    [% title = "Недопустимое значение даты" %]
+    Значение даты '<tt>[% date FILTER html %]</tt>' некорректно.
+    [% IF format %]
+      Используйте формат '<tt>[% format FILTER html %]</tt>'.
+    [% END %]
+    
+  [% ELSIF error == "illegal_email_address" %]
+    [% title = "Недопустимый адрес электронной почты" %]
+    Введенный вами адрес (<b>[% addr FILTER html %]</b>) 
+    не соответствует правилам указания адресов.
+    [% IF default %]
+      Правильный адрес содержит один символ '@',
+      и как минимум одну '.' после '@'.
+    [% ELSE %]
+      [%+ Param('emailregexpdesc') FILTER html_light %]
+    [% END %]
+    Также адрес не должен содержать запрещённых символов.
+    
+  [% ELSIF error == "illegal_frequency" %]
+    [% title = "Слишком часто" %]
+    Серии данных с интервалом сбора чаще чем раз в [% minimum FILTER html %]
+    дней разрешается создавать только администратору.
+    
+  [% ELSIF error == "illegal_group_control_combination" %]
+    [% title = "Недопустимая комбинация прав доступа" %]
+    [% admindocslinks = {'groups.html' => 'Назначение групп объектам'} %]
+    Недопустимая комбинация прав доступа для группы &quot;
+    [% groupname FILTER html %]&quot;.
+
+  [% ELSIF error == "illegal_query_name" %]
+    [% title = "Недопустимое имя условия отбора" %]
+    Имя сохраняемого условия отбора не может содержать символы: 
+    &lt;, &gt;, &amp;.
+
+  [% ELSIF error == "illegal_series_creation" %]
+    [% admindocslinks = {'groups.html' => 'Разграничение доступа'} %]
+    [% docslinks = {'reporting.html' => 'Отчеты'} %]
+    Недостаточно прав для создания серии данных.
+        
+  [% ELSIF error == "illegal_series_edit" %]
+    [% admindocslinks = {'groups.html' => 'Разграничение доступа'} %]
+    [% docslinks = {'reporting.html' => 'Отчеты'} %]
+    Недостаточно прав для изменения серии данных. Доступ разрешен
+    только создателю серии или администратору.
+
+  [% ELSIF error == "illegal_time" %]
+    [% title = "Недопустимое время" %]
+    Значение времени '<tt>[% time FILTER html %]</tt>' недопустимо.
+    [% IF format %]
+      Используйте формат '<tt>[% format FILTER html %]</tt>'.
+    [% END %]
+
+  [% ELSIF error == "illegal_regexp" %]
+    [% title = "Недопустимое регулярное выражение" %]
+    Указанное регулярное выражение [% value FILTER html %] недопустимо.
+    Сообщение об ошибке: [% dberror FILTER html %].
+        
+  [% ELSIF error == "insufficient_data_points" %]
+    [% docslinks = {'reporting.html' => 'Отчеты'} %]
+    В данный момент данных недостаточно для построения диаграммы.
+        
+  [% ELSIF error == "invalid_attach_id" %]
+    [% title = "Недопустимый номер приложения" %]
+    Номер приложения [% attach_id FILTER html %] недопустим.
+
+  [% ELSIF error == "bug_id_does_not_exist" %]
+    [% title = BLOCK %]Неправильный номер [% terms.bug_gen %][% END %]
+    [% terms.Bug %] #[% bug_id FILTER html %] не существует.
+    
+  [% ELSIF error == "improper_bug_id_field_value" %]
+    [% title = BLOCK %]
+      [% IF bug_id %]Недопустимая [% ELSE %]Не указана [% END %]ссылка на [% terms.bug_obj %]
+    [% END %]
+    [% IF bug_id %]
+      '[% bug_id FILTER html %]' не является допустимым номером 
+       или именем [% terms.bug_gen %].
+    [% ELSE %]
+      [% IF field %]
+        Поле '[% field_descs.$field FILTER html %]' должно
+        быть заполнено.
+      [% END %]
+      Введите номер [% terms.bug_gen %]!
+    [% END %]
+
+  [% ELSIF error == "invalid_changedsince" %]
+    [% title = "Недопустимый формат поля 'Время изменения'" %]
+    Значение поля 'время изменения' ('[% changedsince FILTER html %]') должно
+    быть целым неотрицательным числом.
+
+  [% ELSIF error == "invalid_content_type" %]
+    [% title = "Неправильный MIME тип приложения" %]
+    Неправильный тип <em>[% contenttype FILTER html %]</em>.
+    MIME - тип должен быть в виде <em>foo/bar</em>, где <em>foo</em>
+    один из <em>[% constants.LEGAL_CONTENT_TYPES.join(', ') FILTER html %]</em>,
+    а <em>bar</em> не должен содержать никаких специальных символов (таких как "=", "?", ...).    
+    
+  [% ELSIF error == "invalid_context" %]
+    [% title = "Недопустимый контекст" %]
+    Контекст [% context FILTER html %] недопустим (ожидается число,
+    "file" или "patch").
+
+  [% ELSIF error == "invalid_datasets" %]
+    [% title = "Недопустимые наборы данных" %]
+    Нарушен формат наборов данных <em>[% datasets.join(":") FILTER html %]</em>. Допустимыми 
+    символами являются цифры, буквы и двоеточия.
+
+  [% ELSIF error == "invalid_dimensions" %]
+    [% title = "Недопустимые размеры" %]
+    Указанные ширина или высота не являются положительным числом.
+
+  [% ELSIF error == "invalid_format" %]
+    [% title = "Недопустимый формат" %]
+    Формат "[% format FILTER html %]" недопустим (разрешены: 
+    [% FOREACH my_format = formats %]
+      "[% my_format FILTER html %]"
+    [% END %]
+    ).
+
+  [% ELSIF error == "invalid_group_ID" %]
+    [% title = "Недопустимая группа" %]
+    Указанная группа не существует.
+
+  [% ELSIF error == "invalid_group_name" %]
+    [% title = "Недопустимое имя группы" %]
+    Указанное имя группы [% name FILTER html %] в данном контексте неуместно.
+
+  [% ELSIF error == "invalid_keyword_id" %]
+    Не удалось найти ключевое слово с ID <em>[% id FILTER html %]</em>.
+
+  [% ELSIF error == "invalid_maxrows" %]
+    [% title = "Недопустимое количество строк" %]
+    Максимальное количество строк, '[% maxrows FILTER html %]', должно
+    быть целым положительным числом.
+
+  [% ELSIF error == "invalid_parameter" %]
+    [% title = "Недопустимое значение настройки" %]
+    Значение настройки [% name FILTER html %] недопустимо: [% err FILTER html %].
+
+  [% ELSIF error == "invalid_product_name" %]
+    [% title = "Недопустимое наименование объекта" %]
+    Наименование объекта '[% product FILTER html %]' недопустимо или не существует.
+
+  [% ELSIF error == "invalid_regexp" %]
+    [% title = "Недопустимое регулярное выражение" %]
+    Указанное регулярное выражение некорректно.
+    
+  [% ELSIF error == "invalid_user" %]
+    [% title = "Некорректное имя пользователя" %]
+    Учётной записи пользователя
+    [% IF user_id %]
+      с ID <em>[% user_id FILTER html %]</em> не существует.
+    [% ELSIF user_login %]
+      с логином <em>[% user_login FILTER html %]</em> не существует.
+    [% ELSE %]
+      не существует.
+    [% END %]
+
+  [% ELSIF error == "invalid_user_group" %]
+    [% title = "Недопустимый выбор пользователей" %]
+    [% IF users.size > 1 %] Пользователи [% ELSE %] Пользователь [% END %]
+    '[% users.join(', ') FILTER html %]'
+    не [% IF users.size > 1 %] имеют [% ELSE %] имеет [% END %]
+    доступа к изменению объекта
+    [% IF product %]
+      '[% product FILTER html %]'
+    [% END %]
+    [% IF bug_id %]
+      для [% terms.bug_gen %] '[% bug_id FILTER html %]'.
+    [% ELSIF new %]
+      и не 
+      [% IF users.size > 1 %] 
+        могут быть подписаны 
+      [% ELSE %]
+        может быть подписан
+      [% END %] на новые [% terms.bugs %].
+    [% ELSE %]
+      по крайней мере для одной из  [% terms.bugs_gen %].
+    [% END %]
+
+  [% ELSIF error == "invalid_username" %]
+    [% title = "Недопустимое имя пользователя" %]
+    Имя пользователя <tt>[% name FILTER html %]</tt> недопустимо.  
+    Возможно, допущена опечатка или пользователь не имеет
+    учетной записи [% terms.Bugzilla %].
+
+  [% ELSIF error == "invalid_username_or_password" %]
+    [% title = "Недопустимое имя пользователя или пароль" %]
+    Указанные имя пользователя или пароль неверны.
+    [%# У вас имеется две попытки произвести вход перед тем как вы получите
+      # предупреждение о блокировке.
+      #%]
+    [% IF remaining <=  2 %]
+      Если вы не введёте правильный пароль после 
+      ещё [%+ remaining FILTER html %] попыток, то эта учётная запись будет
+      заблокирована для вас на 
+      [%+ constants.LOGIN_LOCKOUT_INTERVAL FILTER html %] минут.
+      Чтобы избежать блокировки, вы можете сбросить свой пароль при помощи
+      ссылки "Забытый пароль".
+    [% END %]
+
+  [% ELSIF error == "json_rpc_get_method_required" %]
+    При использовании JSON-RPC через GET, вы должны указать параметр 'method'.
+    Обратитесь к документации
+    [%+ docs_urlbase FILTER html %]api/Bugzilla/WebService/Server/JSONRPC.html
+
+  [% ELSIF error == "json_rpc_illegal_content_type" %]
+    При использовании JSON-RPC через POST, вы не можете отправлять данные 
+    как [%+ content_type FILTER html %]. Допустимы только application/json 
+    и application/json-rpc.
+
+  [% ELSIF error == "json_rpc_invalid_params" %]
+    Не удалось распарсить аргумент 'params' в виде корректного JSON.
+    Ошибка: [% err_msg FILTER html %]
+    Значение: [% params FILTER html %]
+
+  [% ELSIF error == "json_rpc_invalid_callback" %]
+    Вы не можете использовать '[% callback FILTER html %]' в качестве параметра
+    'callback'. По соображениям безопасности в параметре 'callback' допустимо
+    использовать только буквы, цифры и следующие символы: <code>[]._</code>
+
+  [% ELSIF error == "json_rpc_post_only" %]
+    По соображениям безопасности для вызова метода '[% method FILTER html %]' 
+    необходимо использовать HTTP POST.
+
+  [% ELSIF error == "keyword_already_exists" %]
+    [% title = "Ключевое слово уже существует" %]
+    Ключевое слово [% name FILTER html %] уже существует.
+
+  [% ELSIF error == "keyword_blank_description" %]
+    [% title = "Укажите описание ключевого слова" %]
+    Указание описания ключевого слова обязательно.
+     
+  [% ELSIF error == "keyword_blank_name" %]
+    [% title = "Укажите ключевое слово" %]
+    Указание названия ключевого слова обязательно.
+     
+  [% ELSIF error == "keyword_invalid_name" %]
+    [% title = "Недопустимое имя ключевого слова" %]
+    Пробелы и запятые в ключевом слове не допускаются.
+
+  [% ELSIF error == "login_needed_for_password_change" %]
+    [% title = "Укажите учетную запись" %]
+    При запросе смены пароля обязательно указание учетной записи.
+
+  [% ELSIF error == "login_required_for_pronoun" %]
+    [% title = "Укажите учетную запись" %]
+    Запрещено использовать %user% до входа в систему, поскольку %user% 
+    ссылается на имя зарегистрированного пользователя.
+    
+  [% ELSIF error == "login_required" %]
+    [%# Used for non-web-based LOGIN_REQUIRED situations. %]
+    Перед использованием этой части [% terms.Bugzilla %] вам необходимо в
+    ней зарегистрироваться.
+
+  [% ELSIF error == "migrate_config_created" %]
+    Файл <kbd>[% file FILTER html %]</kbd> содержит параметры миграции.
+    Настройте эти параметры перед продолжением операции.
+
+  [% ELSIF error == "migrate_from_invalid" %]
+    Недопустимый тип программного обеспечения '[% from FILTER html %]' 
+    в качестве источника данных миграции.  Список допустимых типов 
+    источников находится в каталоге <kbd>B[% %]ugzilla/Migrate/</kbd>
+
+  [% ELSIF error == "milestone_already_exists" %]
+    [% title = "План уже существует" %]
+    [% admindocslinks = {'products.html' => 'Управление объектами',
+                         'milestones.html' => 'Планирование'} %]
+    План '[% name FILTER html %]' для объекта'
+    [%- product FILTER html %]' уже создан.
+
+  [% ELSIF error == "milestone_blank_name" %]
+    [% title = "Укажите название плана" %]
+    Указание названия плана обязательно.
+
+  [% ELSIF error == "milestone_is_default" %]
+    [% title = "Удаление плана по умолчанию запрещено" %]
+    [% admindocslinks = {'products.html' => 'Управление объектами',
+                         'milestones.html' => 'Планирование'} %]
+    План [% milestone.name FILTER html %] используется по умолчанию
+    для объекта '[% milestone.product.name FILTER html %]' и
+    не может быть удален.
+
+  [% ELSIF error == "milestone_name_too_long" %]
+    [% title = "Слишком длинное имя плана" %]
+    Имя плана не должно превышать [% constants.MAX_MILESTONE_SIZE FILTER html %]
+    символов. '[% name FILTER html %]' имеет длину [% name.length %] символов.
+
+  [% ELSIF error == "milestone_required" %]
+    [% title = "Указание плана обязательно" %]
+    Включение [% terms.bug_gen %] 
+    [%+ bug.id FILTER html %]
+    в один из планов обязательно для
+    принятия в работу.
+
+  [% ELSIF error == "milestone_sortkey_invalid" %]
+    [% title = "Недопустимый порядок сортировки" %]
+    Ключ сортировки '[% sortkey FILTER html %]' должен быть в интервале: 
+    [%+ constants.MIN_SMALLINT FILTER html %] &le; ключ &le;
+    [%+ constants.MAX_SMALLINT FILTER html %].
+
+  [% ELSIF error == "misarranged_dates" %]
+    [% title = "Несовместный интервал дат" %]
+    Указанная начальная дата ([% datefrom FILTER html %]) позже 
+    конечной ([% dateto FILTER html %]).
+
+  [% ELSIF error == "mismatched_bug_ids_on_obsolete" %]
+    Приложение [% attach_id FILTER html %] приложено в другой [% terms.bug_dat %],
+    а вы попытались отметить его как неактуальное при создании нового
+    приложения к [%+ terms.bug_dat %] [%+ my_bug_id FILTER html %].
+
+  [% ELSIF error == "missing_attachment_description" %]
+    [% title = "Отсутствует описание для приложения" %]
+    Необходимо ввести описание для приложения.
+
+  [% ELSIF error == "missing_bug_id" %]
+    [% title = "Отсутствует номер $terms.Bug_gen" %]
+    Не указан номер [% terms.bug_gen %].
+
+  [% ELSIF error == "missing_category" %]
+    [% title = "Категория не указана" %]
+    Не указана категория для серии данных.
+
+  [% ELSIF error == "missing_component" %]
+    [% title = "Раздел не указан" %]
+    [% admindocslinks = {'products.html' => 'Управление объектами',
+                         'components.html' => 'Создание раздела'} %]
+    Для регистрации [% terms.bugs.gen %] объект <em>[% product.name FILTER html %]</em>
+    должен иметь как минимум один активный раздел.<br>
+    [% IF user.in_group("editcomponents", product.id) %]
+      <a href="editcomponents.cgi?action=add&amp;product=[% product.name FILTER uri %]">Создать 
+      раздел</a>.
+    [% ELSE %]
+      Для создания раздела обратитесь по адресу [% Param("maintainer") %].
+    [% END %]
+
+  [% ELSIF error == "missing_content_type" %]
+    [% title = "Тип файла не указан" %]
+     Запрошено автоматическое определение типа файла, однако ваш
+     веб-обозреватель не указал поле Content-Type при загрузке файла. 
+     Необходимо ввести тип файла вручную.
+
+  [% ELSIF error == "missing_cookie" %]
+    [% title = "Cookie отсутствует" %]
+    Отсутствует cookie с результатами последнего поиска. 
+    <a href="query.cgi">Повторите поиск</a> заново.
+          
+  [% ELSIF error == "missing_datasets" %]
+    [% title = "Не выбраны наборы данных" %]
+    [% docslinks = {'reporting.html' => 'Отчеты'} %]
+    Укажите один или несколько наборов данных для построения диаграммы.
+    
+  [% ELSIF error == "missing_frequency" %]
+    [% title = "Не указан интервал сбора" %]
+    [% docslinks = {'reporting.html' => 'Отчеты'} %]
+    Не указан допустимый интервал сбора для серии данных.
+                
+  [% ELSIF error == "missing_name" %]
+    [% title = "Не указано имя серии" %]
+    [% docslinks = {'reporting.html' => 'Отчеты'} %]
+    Не указано имя серии данных.
+                
+  [% ELSIF error == "missing_query" %]
+    [% title = "Условие отбора не найдено" %]
+    [% docslinks = {'query.html' => "Поиск $terms.bugs_gen",
+                    'query.html#list' => "Списки $terms.bugs_gen"} %]
+    Хранимое условие отбора <em>[% name FILTER html %]</em>
+    [% IF sharer_id && sharer_id != user.id %]
+      не опубликовано для Вас.
+    [% ELSE %]
+      не существует.
+    [% END %]
+    
+  [% ELSIF error == "need_quipid" %]
+    [% title = "Не указан ID цитаты" %]
+    Требуется указать корректный ID цитаты.
+
+  [% ELSIF error == "missing_resolution" %]
+    [% title = "Не указано решение" %]
+    Для перевода [% terms.bugs_gen %] в состояние
+    [%+ status FILTER upper FILTER html %] требуется указание решения.
+
+  [% ELSIF error == "missing_subcategory" %]
+    [% title = "Подкатегория не указана" %]
+    Не указана подкатегория для серии данных.
+                
+  [% ELSIF error == "missing_version" %]
+    [% title = "Версия не указана" %]
+    [% admindocslinks = {'versions.html' => 'Определение версий'} %]
+    Для регистрации [% terms.bugs.gen %] объект <em>[% product.name FILTER html %]</em>
+    должен иметь как минимум одну активную версию.<p>
+    [% IF user.in_group("editcomponents", product.id) %]
+      <a href="editversions.cgi?action=add&amp;product=[% product.name FILTER uri %]">Создать
+      версию</a>.
+    [% ELSE %]
+      Для создания версии обратитесь по адресу [% Param("maintainer") %].
+    [% END %]
+
+  [% ELSIF error == "multiple_alias_not_allowed" %]
+    При модификации сразу нескольких [% terms.bugs %] вы не можете
+    устанавливать имена.
+
+  [% ELSIF error == "need_quip" %]
+    [% title = "Укажите цитату" %]
+    Укажите цитату в поле ввода текста.
+
+  [% ELSIF error == "new_password_missing" %]
+    [% title = "Нет нового пароля" %]
+    Вы должны ввести новый пароль.
+
+  [% ELSIF error == "no_axes_defined" %]
+    [% title = "Не указаны оси" %]
+    Не указаны оси для построения диаграммы.
+
+  [% ELSIF error == "no_bugs_chosen" %]
+    [% title = BLOCK %]Не выбрано ни одной  [% terms.bugs %][% END %]
+    Вероятно, вы не выбрали ни одной [% terms.bugs %]
+    [% IF action == "modify" %]
+       для изменения.
+    [% ELSIF action == "view" %]
+      для просмотра.
+    [% END %]
+
+  [% ELSIF error == "no_tag_to_edit" %]
+    [% title = "Условие отбора не выбрано" %]
+    Вы попытались создать или удалить условие отбора без имени.
+
+  [% ELSIF error == "no_initial_bug_status" %]
+    [% title = "Не задано начальное состояние ${terms.bug_gen}" %]
+    при регистрации [% terms.bug_gen %] недоступно начальное состояние.
+    Обратитесь к администратору: [% Param("maintainer") %].
+
+  [% ELSIF error == "no_new_quips" %]
+    [% title = "Добавление цитат запрещено" %]
+    [% admindocslinks = {'quips.html' => 'Использование цитат'} %]
+    Настройками системы запрещено добавление новых цитат.
+
+  [% ELSIF error == "no_page_specified" %]
+    [% title = "Страница не указана" %]
+    Не указана страница для отображения.
+
+  [% ELSIF error == "no_products" %]
+    [% title = "Нет доступных объектов" %]
+    [% admindocslinks = {'products.html'   => 'Настройка объекта',
+                         'components.html' => 'Создание раздела',
+                         'groups.html'     => 'Разграничение доступа'} %]
+    Нет ни одного объекта, открытого для ввода [% terms.bugs_gen %], 
+    либо недостаточно прав для доступа к ним.
+
+  [% ELSIF error == "number_not_numeric" %]
+    [% title = "Требуется числовое значение" %]
+    Значение '[% num FILTER html %]' поля 
+    <em>[% field_descs.$field FILTER html %]</em> 
+    не является числом.
+
+  [% ELSIF error == "number_too_large" %]
+    [% title = "Значение слишком велико" %]
+    Значение '[% num FILTER html %]' поля 
+    <em>[% field_descs.$field FILTER html %]</em> 
+    превышает максимально допустимое: '[% max_num FILTER html %]'.
+
+  [% ELSIF error == "number_too_small" %]
+    [% title = "Значение слишком мало" %]
+    Значение '[% num FILTER html %]' поля 
+    <em>[% field_descs.$field FILTER html %]</em> 
+    меньше минимально допустимого: '[% min_num FILTER html %]'.
+
+  [% ELSIF error == "object_not_specified" %]
+    [% type = BLOCK %][% INCLUDE object_name class = class %][% END %]
+    [% title = BLOCK %][% type FILTER ucfirst FILTER html %] Не 
+    указан[% END %]
+    Необходимо выбрать или указать [% type FILTER html %].
+    [%# FIXME-ru: gender of an object?? %]
+
+  [% ELSIF error == "object_does_not_exist" %]
+    [% type = BLOCK %][% INCLUDE object_name class = class %][% END %]
+    [% title = BLOCK %]Недопустимый [% type FILTER ucfirst FILTER html %][% END %]
+    Отсутствует [% type FILTER html %] 
+    [% IF id.defined %]
+      с кодом '[% id FILTER html %]'
+    [% ELSE %]
+      с именем '[% name FILTER html %]'
+    [% END %]
+    [% IF product.defined %]
+      для объекта '[% product.name FILTER html %]'.
+    [% END %].
+    [% IF class == "Bugzilla::User" %]
+      Неправильно указано имя пользователя или пользователь
+      не зарегистрирован в [% terms.Bugzilla %].
+    [% ELSIF class == "Bugzilla::Keyword" %]
+      Допустимые ключевые слова <a href="describekeywords.cgi">перечислены
+      здесь</a>.
+    [% END %]    
+
+  [% ELSIF error == "old_password_incorrect" %]
+    [% title = "Неверный пароль" %]
+    Вы ввели неверный текущий пароль.
+
+  [% ELSIF error == "old_password_required" %]
+    [% title = "Требуется ввод пароля" %]
+    Для изменения адреса электронной почты обязателен ввод старого пароля.
+
+  [% ELSIF error == "password_change_requests_not_allowed" %]
+    [% title = "Смена пароля запрещена" %]
+    Запросы на смену пароля запрещены при настройке системы.
+
+  [% ELSIF error == "passwords_dont_match" %]
+    [% title = "Несовпадение паролей" %]
+    Введенные значения пароля не совпадают между собой.
+
+  [% ELSIF error == "password_current_too_short" %]
+    [% title = "Требуется новый пароль" %]
+    В данный момент ваш пароль короче
+    [%+ constants.USER_PASSWORD_MIN_LENGTH FILTER html %] символов, являющихся
+    новой минимальной длиной пароля.
+    Чтобы войти в систему, вы должны 
+    <a href="token.cgi?a=reqpw&amp;loginname=[% locked_user.email FILTER uri %]">запросить 
+    новый пароль</a>.
+
+  [% ELSIF error == "password_too_short" %]
+    [% title = "Слишком короткий пароль" %]
+    Длина пароля должна быть не менее 
+    [%+ constants.USER_PASSWORD_MIN_LENGTH FILTER html %] символов.
+    Измените пароль на более длинный.
+
+  [% ELSIF error == "password_not_complex" %]
+    [% title = "Пароль не отвечает требованиям" %]
+    [% passregex = Param('password_complexity') %]
+    Пароль должен содержать по меньшей мере:
+    <ul>
+      [% IF passregex == 'letters_numbers_specialchars' %]
+        <li>одну букву</li>
+        <li>один специальный символ</li>
+      [% ELSIF passregex.search('letters') %]
+        <li>одну букву в ВЕРХНЕМ регистре</li>
+        <li>одну букву в нижнем регистре</li>
+      [% END %]
+      [% IF passregex.search('numbers') %]
+        <li>одну цифру</li>
+      [% END %]
+    </ul>
+
+  [% ELSIF error == "product_access_denied" %]
+    [% title = "В доступе к объекту отказано" %]  
+    Объект 
+    [%+ IF id.defined %]
+      with the id [% id FILTER html %]
+    [% ELSE %]
+      '[% name FILTER html %]'
+    [% END %] не существует 
+    или доступ к нему ограничен.
+
+  [% ELSIF error == "product_illegal_group" %]
+    [% title = "Недопустимая группа" %]
+    [% group.name FILTER html %] не является действующей группой [% terms.bugs_gen %],
+    изменение прав доступа недопустимо.
+
+  [% ELSIF error == "product_name_already_in_use" %]
+    [% title = "Название объекта уже используется" %]
+    [% admindocslinks = {'products.html' => 'Настройка объектов'} %]
+    Объект с названием '[% product FILTER html %]' уже существует.
+  
+  [% ELSIF error == "product_name_diff_in_case" %]
+    [% title = "Дублирование названия с точностью до регистра" %]
+    [% admindocslinks = {'products.html' => 'Настройка объектов'} %]
+    Название объекта '[% product FILTER html %]' отличается от существующего 
+    объекта '[% existing_product FILTER html %]' только регистром символов.
+
+  [% ELSIF error == "product_name_too_long" %]
+    [% title = "Слишком длинное название объекта" %]
+    Длина названия объекта не должна превышать [% constants.MAX_PRODUCT_SIZE FILTER html %]
+    символов. '[% name FILTER html %]' слишком велико ([% name.length %] символов).
+
+  [% ELSIF error == "product_must_define_defaultmilestone" %]
+    [% title = "Определение плана по умолчанию обязательно" %]
+    [% admindocslinks = {'products.html' => 'Настройка объектов',
+                         'milestones.html' => 'Планирование'} %]
+    До указания плана по умолчанию '[% milestone FILTER html %]'
+    для объекта '[% product FILTER html %]' 
+    <a href="editmilestones.cgi?action=add&amp;product=[% product FILTER uri %]">
+    следует его создать</a>.
+
+  [% ELSIF error == "product_admin_denied" %]
+    [% title = "Доступ к объекту запрещен" %]
+    Редактирование свойств объекта '[% product FILTER html %]' запрещено.
+
+  [% ELSIF error == "product_blank_name" %]
+    [% title = "Укажите название объекта" %]
+    [% admindocslinks = {'products.html' => 'Настройка объектов'} %]
+    Указание названия объекта обязательно.
+  
+  [% ELSIF error == "product_disabled" %]
+    [% title = BLOCK %]Объект закрыт для регистрации [% terms.bugs_gen %][% END %]
+    [% admindocslinks = {'products.html' => 'Настройка объектов'} %]
+    Регистрация [% terms.bugs_gen %] для объекта
+    <em>[% product.name FILTER html %]</em> запрещена.
+
+  [% ELSIF error == "product_edit_denied" %]
+    [% title = BLOCK %]Изменения [% terms.bugs_gen %] запрещены[% END %]
+    [% admindocslinks = {'products.html' => 'Настройка объектов',
+                         'groups.html'   => 'Разграничение доступа'} %]
+    Изменения [% terms.bugs_gen %] объекта [%+ product FILTER html %] 
+    запрещены.
+
+  [% ELSIF error == "product_has_bugs" %]
+    [% title = BLOCK %]Для объекта существуют [% terms.bugs %][% END %]
+    [% admindocslinks = {'products.html' => 'Настройка объектов'} %]
+    Для указанного объекта зарегистрировано [% nb FILTER html %] 
+    [%+ terms.bugs_gen %]!  Перед удалением объекта следует перенести
+    эти [% terms.bugs %] в другие объекты.
+
+  [% ELSIF error == "product_must_have_description" %]
+    [% title = "Укажите описание объекта" %]
+    [% admindocslinks = {'products.html' => 'Настройка объектов'} %]
+    Указание описания объекта обязательно.
+
+  [% ELSIF error == "product_must_have_version" %]
+    [% title = "Укажите версию объекта" %]
+    [% admindocslinks = {'products.html' => 'Настройка объектов',
+                         'versions.html' => 'Настройка версий'} %]
+    Указание версии при создании объекта обязательно.
+
+  [% ELSIF error == "product_unknown_component" %]
+    [% title = "Раздел неизвестен" %]
+    У объекта '[% product FILTER html %]' нет раздела
+    [% IF comp_id %]
+      с ID [% comp_id FILTER html %].
+    [% ELSE %]
+      с именем '[% comp FILTER html %]'.
+    [% END %]
+
+  [% ELSIF error == "query_name_missing" %]
+    [% title = "Условие отбора не указано" %]
+    [% docslinks = {'query.html#list' => "Списки $terms.bugs_gen"} %]
+    Указание имени хранимого условия отбора обязательно.
+
+  [% ELSIF error == "query_name_too_long" %]
+    [% title = "Слишком длинное имя условия отбора" %]
+    Длина имени хранимого условия отбора не должна превышать [% constants.MAX_LEN_QUERY_NAME FILTER html %]
+    символов.
+    
+  [% ELSIF error == "quicksearch_invalid_query" %]
+    [% title = "Некорректное условие отбора" %]
+    Ваше условие отбора некорректно.
+    [% IF operators %]
+      За оператором [% operators.shift FILTER html %] не может следовать оператор
+      [%+ operators.shift FILTER html %].
+    [% ELSE %]
+      Условие отбора не может начинаться с AND или OR, и не может заканчиваться на AND, OR или NOT.
+      Это зарезервированные операторы, и если вы хотите производить отбор по этим строкам, их надо
+      заключать в кавычки.
+    [% END %]
+
+  [% ELSIF error == "quicksearch_unbalanced_quotes" %]
+    [% title = "Неверный формат условия отбора" %]
+    [% terms.Bugzilla %] не может корректно распарсить ваше условие отбора:
+    <em>[% string FILTER html %]</em>.<br>
+    Если вы заключали строки в кавычки, убедитесь что присутствуют обе кавычки.
+    Если вы на самом деле хотите искать в строке кавычку, наберите \" вместо ".
+    Например, <em>"I'm so \"special\", really"</em> (с кавычками) будет
+    интерпретировано как <em>I'm so "special", really</em>.
+
+  [% ELSIF error == "quicksearch_unknown_field" %]
+    [% title = "Ошибка поиска" %]
+    При поиске возникла проблема:
+    [% FOREACH field = unknown %]
+      <p>Атрибут поиска <code>[% field FILTER html %]</code> недействителен.</p>
+    [% END %]
+    [% FOREACH field = ambiguous.keys %]
+      <p><code>[% field FILTER html %]</code> может соответствовать более чем одному атрибуту:
+        [%+ ambiguous.${field}.join(', ') FILTER html %]</p>
+    [% END %]
+
+    [% IF unknown.size %]
+      <p>Обратитесь к 
+        <a href="page.cgi?id=quicksearch.html#fields">списку допустимых атрибутов поиска</a>.</p>
+    [% END %]
+    
+  [% ELSIF error == "quip_too_long" %]
+    [% title = "Превышена длина цитаты" %]
+    Вы ввели цитату длиной [% length FILTER none %] символов, 
+    но максимально допустимая длина равна [% constants.MAX_QUIP_LENGTH FILTER none %] 
+    символам.
+    
+  [% ELSIF error == "reassign_to_empty" %]
+    [% title = "Недопустимое назначение" %]
+    При назначении [% terms.bug_gen %] указание адреса нового исполнителя
+    обязательно.
+
+  [% ELSIF error == "report_axis_invalid" %]
+    [% title = "Некорректные значения осей" %]
+    <em>[% val FILTER html %]</em> не является корректным значением для поля
+    [%+ IF    fld == "x" %]горизонтальной оси
+    [%+ ELSIF fld == "y" %]вертикальной оси
+    [%+ ELSIF fld == "z" %]нескольких таблиц/изображений
+    [%+ ELSE %]оси отчёта[% END %].
+
+  [% ELSIF error == "report_name_missing" %]
+    [% title = "Не указано имя отчета" %]
+    Вам необходимо ввести имя для вашего отчета.
+
+  [% ELSIF error == "report_access_denied" %]
+    [% title = "Отказ в доступе к отчёту" %]
+    Вам отказано в доступе к этому отчёту.
+
+  [% ELSIF error == "require_component" %]
+    [% title = "Укажите раздел" %]
+    При регистрации [% terms.bug_gen %] указание раздела обязательно.
+    Выберите раздел из списка.
+
+  [% ELSIF error == "relationship_loop_single" %]
+    [% title = "Обнаружена петля во зависимостях" %]
+    [% field_descs.$field_name FILTER html %]
+    для [% terms.bug %] [%+ bug_id FILTER html %]
+    имеет циркулярную зависимость от [% terms.bug %] [%+ dep_id FILTER html %].
+
+  [% ELSIF error == "request_queue_group_invalid" %]
+    Недопустимое поле группы <em>[% group FILTER html %]</em>.
+
+  [% ELSIF error == "require_new_password" %]
+    [% title = "Укажите новый пароль" %]
+    Для смены пароля указание нового пароля обязательно.
+
+  [% ELSIF error == "required_field" %]
+    [% title = "Требуется указать значение поля" %]
+    Для поля '[% field_descs.${field.name} FILTER html %]' должно быть
+    установлено значение.
+
+  [% ELSIF error == "require_summary" %]
+    [% title = "Укажите аннотацию" %]
+    Указание аннотации [% terms.bug_gen %] обязательно.
+
+  [% ELSIF error == "resolution_cant_clear" %]
+    [% terms.Bug %] [%+ bug_id FILTER bug_link(bug_id) FILTER none %]
+    закрыта, очистка решения недопустима.
+
+  [% ELSIF error == "resolution_not_allowed" %]
+    [% title = "Resolution Not Allowed" %]
+    Указание решения для [% terms.bug_gen %] в этом состоянии недопустимо.
+
+  [% ELSIF error == "saved_search_used_by_whines" %]
+    [% title = "Условие отбора используется" %]
+    [% docslinks = {'whining.html' => 'Оповещения по почте'} %]
+    Хранимое условие отбора <em>[% search_name FILTER html %]</em> 
+    используется в <a href="editwhines.cgi">оповещениях</a> с темами:
+    [%+ subjects FILTER html %]
+
+  [% ELSIF error == "search_content_without_matches" %]
+    [% title = "Недопустимый поиск" %]
+    Для поиска по характерным словам обязательно указание текста. 
+    Дополнительные условия поиска при этом недопустимы.
+    
+  [% ELSIF error == "search_grouped_field_invalid" %]
+    [% terms.Bugzilla %] не поддерживает использование поля
+    "[%+ field_descs.$field FILTER html %]" ([% field FILTER html %])
+    в сгруппированных условиях поиска.
+
+  [% ELSIF error == "search_grouped_invalid_nesting" %]
+    Вы не можете использовать вложенные операторы в сгруппированных условиях
+    поиска.
+
+  [% ELSIF error == "search_grouped_field_mismatch" %]
+    Все условия при сгруппированном поиске должны использовать одно и то же
+    поле.
+
+  [% ELSIF error == "search_field_operator_invalid" %]
+    [% terms.Bugzilla %] не поддерживает использование поля 
+    "[%+ field_descs.$field FILTER html %]" ([% field FILTER html %])
+    с типом поиска "[% search_descs.$operator FILTER html %]" 
+    ([% operator FILTER html %]).
+
+  [% ELSIF error == "see_also_self_reference" %]
+    Вы не можете поместить эту [% terms.bug_acc %] в его собственное
+    поле [%+ field_descs.see_also FILTER html %].
+
+  [% ELSIF error == "series_already_exists" %]
+    [% title = "Серия данных уже существует" %]
+    [% docslinks = {'reporting.html' => 'Отчеты'} %]
+      Серия данных <em>[% series.category FILTER html %] /
+      [%+ series.subcategory FILTER html %] / 
+      [%+ series.name FILTER html %]</em>
+      уже существует.
+
+  [% ELSIF error == "still_unresolved_bugs" %]
+    [% title = "Нерешённые зависимости" %]
+    [% IF bug_id %]
+      [% terms.Bug %] [%+ bug_id FILTER bug_link(bug_id) FILTER none %]
+    [% ELSE %]
+       Эта [% terms.bug %]
+    [% END %]
+    зависит от [% dep_count FILTER none %] 
+    [% IF dep_count == 1 %]
+         нерешенного [% terms.Bug %]
+       [% ELSE %]
+         нерешенных [% terms.bugs_gen %]
+    [% END %].
+    Они должны быть либо решены, либо удалены из поля
+    "[% field_descs.dependson FILTER html %]" перед тем как вы сможете
+    установить для этого [% terms.bug %] статус
+    [% display_value("resolution", "FIXED") FILTER html %].
+
+  [% ELSIF error == "sudo_invalid_cookie" %]
+    [% title = "Некорректный Cookie для работы от имени другого пользователя" %]
+    Ваш cookie для работы от имени другого пользователя является некорректным.
+    Либо он истёк, либо вы неверно начали сеанс работы от имени другого пользователя.
+    Обновите страницу или загрузите другую страницу, чтобы продолжить то, что вы делаете,
+    от своего имени.
+
+  [% ELSIF error == "sudo_illegal_action" %]
+    [% title = "Нет разрешения на работу от имени другого пользователя" %]
+    [% IF NOT sudoer.in_group("bz_sudoers") %]
+      Вам не разрешено работать от имени других пользователей.
+    [% ELSIF target_user AND target_user.in_group("bz_sudo_protect") %]
+      Вам не разрешено работать от имени [% target_user.identity FILTER html %].
+    [% ELSE %]
+      Пользователя, от имени которого вы пытаетесь работать, не существует.
+    [% END %]
+
+  [% ELSIF error == "sudo_in_progress" %]
+    [% title = "Работа от имени пользователя начата" %]
+    Сеанс работы от имени пользователя <em>[% target FILTER html %]</em> уже начат.  
+    Завершите сеанс (ссылка внизу страницы) прежде чем начать новый.
+
+  [% ELSIF error == "sudo_password_required" %]
+    [% title = "Введите пароль" %]
+    Для работы от имени другого пользователя укажите Ваш пароль [% terms.Bugzilla %].
+    <a href="relogin.cgi?action=prepare-sudo&amp;target_login=
+    [%- target_login FILTER uri %]&amp;reason=
+    [%- reason FILTER uri %]">Вернуться</a> для ввода пароля.
+    
+  [% ELSIF error == "sudo_preparation_required" %]
+    [% title = "Требуется подготовка сеанса" %]
+    Сеанс работы от имени другого пользователя не может быть 
+    начат обычным способом.  
+    <a href="relogin.cgi?action=prepare-sudo&amp;target_login=
+    [%- target_login FILTER uri %]&amp;reason=
+    [%- reason FILTER uri %]">Перейти к подготовке сеанса</a>.
+
+  [% ELSIF error == "sudo_protected" %]
+    [% title = "Работа от имени пользователя запрещена" %]
+    Работа от имени пользователя [% login FILTER html %] запрещена.
+    
+  [% ELSIF error == "tag_name_too_long" %]
+    [% title = "Имя условия отбора слишком длинно" %]
+    Длина имени условия отбора должна быть короче [% constants.MAX_LEN_QUERY_NAME FILTER html %]
+    символов.
+
+  [% ELSIF error == "token_does_not_exist" %]
+    [% title = "Жетон не существует" %]
+    Указанный жетон не существует, просрочен или аннулирован.
+
+  [% ELSIF error == "too_soon_for_new_token" %]
+    [% title = "Запрошено слишком много жетонов" %]
+    Частота запросов на 
+    [% IF type == "password" %]
+      сброс пароля
+    [% ELSIF type == "account" %]
+      создание учетной записи
+    [% END %]
+    выше допустимой.  
+    Подождите [% constants.ACCOUNT_CHANGE_INTERVAL FILTER html %] минут
+    перед повторным запросом.
+
+  [% ELSIF error == "unknown_action" %]
+    [% IF action %]
+       Неизвестное действие [% action FILTER html %]!
+    [% ELSE %]
+       Действие не задано.
+    [% END %]
+
+  [% ELSIF error == "unknown_tab" %]
+    [% title = "Недопустимое имя вкладки" %]
+    Вкладки с именем <code>[% current_tab_name FILTER html %]</code> не существует.
+    
+  [% ELSIF error == "value_inactive" %]
+    [% title = "Значение неактивно" %]
+    [% type = BLOCK %][% INCLUDE object_name class = class %][% END %]
+    Значение '[% value FILTER html %]' в [% type FILTER html %] неактивно.
+
+  [% ELSIF error == "version_already_exists" %]
+    [% title = "Версия уже существует" %]
+    [% admindocslinks = {'versions.html' => 'Настройка версий'} %]
+    Версия '[% name FILTER html %]' уже существует у объекта '
+    [%- product FILTER html %]'.
+
+  [% ELSIF error == "version_blank_name" %]
+    [% title = "Укажите название версии" %]
+    Указание названия версии обязательно.
+
+  [% ELSIF error == "version_has_bugs" %]
+    [% title = BLOCK %]Для версии существуют [% terms.bugs %][% END %]
+    Для указанной версии зарегистрировано [% nb FILTER html %] 
+    [%+ terms.bugs_gen %]!  Перед удалением объекта следует перенести
+    эти [% terms.bugs %] в другие версии.
+
+  [% ELSIF error == "version_is_last" %]
+    [% title = BLOCK %]Последняя версия в этом объекте[% END %]
+    '[% version.name FILTER html %]' является последней версией в
+    объекте '[% version.product.name FILTER html %]'. Вы не можете её удалить.
+
+  [% ELSIF error == "users_deletion_disabled" %]
+    [% title = "Удаление запрещено" %]
+    [% admindocslinks = {'useradmin.html' => 'Управление пользователями'} %]
+    Удаление учетных записей пользователей запрещено при настройке системы.
+
+  [% ELSIF error == "user_has_responsibility" %]
+    [% title = "Удаление пользователя невозможно" %]
+    [% admindocslinks = {'useradmin.html' => 'Управление пользователями'} %]
+    Пользователь, подлежащий удалению, является ответственным исполнителем
+    [% IF Param('useqacontact') %]
+      или ответственным за приемку
+    [% END %]
+    как минимум для одного раздела.
+    Удаление учетной записи невозможно.
+  [% ELSIF error == "user_access_by_id_denied" %]
+    [% title = "Доступ к данным пользователя запрещен" %]
+    Анонимным пользователям использование аргумента "ids" 
+    для доступа к данным о пользователе запрещено.
+  
+  [% ELSIF error == "user_access_by_match_denied" %]
+    [% title = "Поиск пользователя запрещен" %]
+    Анонимным пользователям использование аргумента "match" 
+    для доступа к данным о пользователе запрещено.
+
+  [% ELSIF error == "user_login_required" %]
+    [% title = "Укажите имя пользователя" %]
+    [% admindocslinks = {'useradmin.html' => 'Управление пользователями'} %]
+    Указание имени создаваемого пользователя обязательно.
+
+  [% ELSIF error == "user_match_failed" %]
+    [% title = "Пользователь не найден" %]
+    Пользователь <tt>[% name FILTER html %]</tt> не существует 
+    или доступ к учетной записи запрещен.
+    
+  [% ELSIF error == "user_match_too_many" %]
+    [% title = "Нет однозначного соответствия" %]
+    [% terms.Bugzilla %] не может найти однозначное соответствие для одного
+    или нескольких имён и/или адресов электронной почты, введённых вами в
+    поля [% fields.join(', ') FILTER html %].
+
+  [% ELSIF error == "user_not_insider" %]
+    [% title = "Пользователь не входит в группу внутренних пользователей" %]
+    Недостаточно прав для использования пометки "Конфиденциально" 
+    в комментариях и приложениях.
+
+  [% ELSIF error == "wrong_token_for_cancelling_email_change" %]
+    [% title = "Недопустимый жетон" %]
+    Предъявленный жетон непригоден для аннулирования смены адреса 
+    электронной почты.
+
+  [% ELSIF error == "wrong_token_for_changing_passwd" %]
+    [% title = "Недопустимый жетон" %]
+    Предъявленный жетон непригоден для смены пароля.
+
+  [% ELSIF error == "wrong_token_for_confirming_email_change" %]
+    [% title = "Недопустимый жетон" %]
+    Предъявленный жетон непригоден для изменения адреса электронной почты.
+
+  [% ELSIF error == "wrong_token_for_creating_account" %]
+    [% title = "Недопустимый жетон" %]
+    Предъявленный жетон непригоден для создания учетной записи.
+
+  [% ELSIF error == "xmlrpc_invalid_value" %]
+    Недопустимое значение "[% value FILTER html %]" поля
+    &lt;[% type FILTER html %]&gt;. (Подробности в спецификации XML-RPC.)
+    
+  [% ELSIF error == "xmlrpc_illegal_content_type" %]
+    При использовании XML-RPC, вы не можете отправлять данные в виде
+    [%+ content_type FILTER html %]. Допустимыми типами данных являются
+    [% constants.XMLRPC_CONTENT_TYPE_WHITELIST.join(', ') FILTER html %].
+
+  [% ELSIF error == "zero_length_file" %]
+    [% title = "Файл нулевой длины" %]
+    Файл, указанный в качестве приложения, имеет нулевую длину, не существует
+    или недоступен для чтения.
+
+  [% ELSIF error == "illegal_user_id" %]
+    [% title = "Illegal User ID" %]
+    Идентификатор пользователя '[% userid FILTER html %]' не является целым числом.
+
+  [% ELSIF error == "extern_id_exists" %]
+    [% title = "Учётная запись уже существует" %]
+    Уже существует учётная запись
+    [% IF existing_login_name %]
+      ([% existing_login_name FILTER html %])
+    [% END %]
+    с идентификатором внешней учетной записи "[% extern_id FILTER html %]".
+
+  [% ELSE %]
+
+    [%# Try to find hooked error messages %]
+    [% error_message = Hook.process("errors") %]
+
+    [% IF not error_message %]
+      [% title = "Код внутренней ошибки не найден" %]
+      Код ошибки пользователя <code>[% error FILTER html %]</code> не найден в
+      библиотеке сообщений.
+      Свяжитесь с [% Param("maintainer") %] и опишите действия, которые
+      привели к появлению этого сообщения.
+    [% ELSE %]
+      [% error_message FILTER none %]
+    [% END %]
+  [% END %]
+[% END %]
+
+[%# We only want HTML error messages for ERROR_MODE_WEBPAGE %]
+[% USE Bugzilla %]
+[% IF Bugzilla.error_mode != constants.ERROR_MODE_WEBPAGE %]
+  [% IF Bugzilla.usage_mode == constants.USAGE_MODE_BROWSER %]
+    [% error_message FILTER none %]
+  [% ELSE %]
+    [% error_message FILTER txt %]
+  [% END %]
+  [% RETURN %]
+[% END %]
+
+[% UNLESS header_done %]
+  [% PROCESS global/header.html.tmpl %]
+[% END %]
+
+[% PROCESS global/docslinks.html.tmpl
+   docslinks      = docslinks
+   admindocslinks = admindocslinks
+%]
+
+<table cellpadding="20">
+  <tr>
+    <td id="error_msg" class="throw_error">
+      [% error_message FILTER none %]
+    </td>
+  </tr>
+</table>
+
+<p>
+  Нажмите <b>Назад</b> и попробуйте ещё раз.
+</p>
+
+[%# If a saved search fails, people want the ability to edit or delete it. 
+  # This is the best way of getting information about that possible saved
+  # search from any error call location. %]
+
+[% namedcmd = Bugzilla.cgi.param("namedcmd") %]
+[% sharer_id = Bugzilla.cgi.param("sharer_id") %]
+[% IF namedcmd AND error != "missing_query" 
+               AND error != "saved_search_used_by_whines"
+               AND !sharer_id %]
+  <p>  
+    Также вы можете
+    <a href="buglist.cgi?cmdtype=dorem&amp;remaction=forget&amp;namedcmd=
+                  [% namedcmd FILTER uri %]">удалить</a>
+                  
+    [% FOREACH q = Bugzilla.user.queries %]
+      [% IF q.name == namedcmd %]
+        или <a href="query.cgi?[% q.url FILTER html %]">изменить</a>
+      [% END %]
+    [% END %]
+    
+    сохраненное условие отбора '[% namedcmd FILTER html %]'.
+  </p>
+[% END %]            
+
+[% PROCESS global/footer.html.tmpl %]
+
+[% BLOCK object_name %]
+  [% IF class == "Bugzilla::Attachment" %]
+    приложение
+  [% ELSIF class == "Bugzilla::User" %]
+    пользователь
+  [% ELSIF class == "Bugzilla::Classification" %]
+    регион
+  [% ELSIF class == "Bugzilla::Product" %]
+    объект    
+  [% ELSIF class == "Bugzilla::Component" %]
+    раздел
+  [% ELSIF class == "Bugzilla::Version" %]
+    версия
+  [% ELSIF class == "Bugzilla::Milestone" %]
+    план
+  [% ELSIF class == "Bugzilla::Status" %]
+    состояние
+  [% ELSIF class == "Bugzilla::Flag" %]
+    согласование
+  [% ELSIF class == "Bugzilla::FlagType" %]
+    вид согласования
+  [% ELSIF class == "Bugzilla::Field" %]
+    атрибут
+  [% ELSIF class == "Bugzilla::Group" %]
+    группа
+  [% ELSIF class == "Bugzilla::Keyword" %]
+    ключевое слово    
+  [% ELSIF class == "Bugzilla::Search::Recent" %]
+    недавний поиск   
+  [% ELSIF class == "Bugzilla::Search::Saved" %]
+    условие отбора
+  [% ELSIF ( matches = class.match('^Bugzilla::Field::Choice::(.+)') ) %]
+    [% SET field_name = matches.0 %]
+    [% field_descs.$field_name FILTER html %]
+  [% END %]
+  [% Hook.process('end_object_name', 'global/user-error.html.tmpl') %]  
+[% END %]

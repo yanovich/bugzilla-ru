@@ -1,0 +1,29 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[% PROCESS "global/variables.none.tmpl" %]
+[% SET reason_descs = {
+  ${constants.REL_ASSIGNEE} => "Вы — исполнитель ${terms.bug_gen}.",
+  ${constants.REL_REPORTER} => "Вы зарегистрировали ${terms.bug_acc}.",
+  ${constants.REL_QA}       => "Вы — ответственный за приемку ${terms.bug_gen}.",
+  ${constants.REL_CC}       => "Вы подписаны на ${terms.bug_acc}.",
+  ${constants.REL_GLOBAL_WATCHER} => "Вы получаете все изменения ${terms.bugs_gen}.",
+} %]
+
+[% SET watch_reason_descs => {
+  ${constants.REL_ASSIGNEE} =>
+    "Вы замещаете исполнителя ${terms.bug_gen}.",
+  ${constants.REL_REPORTER} =>
+    "Вы замещаете зарегистрировавшего ${terms.bug_acc}.",
+  ${constants.REL_QA}       =>
+    "Вы замещаете ответственного за приемку ${terms.bug_gen}.",
+  ${constants.REL_CC}       =>
+    "Вы замещаете кого-либо из подписчиков ${terms.bug_gen}.",
+} %]
+
+[% Hook.process('end') %]

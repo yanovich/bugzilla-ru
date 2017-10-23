@@ -1,0 +1,81 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# INTERFACE:
+  # has_bits: array of hashes. May be empty.
+  #           name => Names of the permissions the user has.
+  #           desc => Descriptions of the permissions the user has.
+  # set_bits: array of hashes. May be empty.
+  #           name => Names of the permissions the user can set for
+  #           other people.
+  #           desc => Descriptions of the permissions the user can set for
+  #           other people.
+  #%]
+
+[% PROCESS global/variables.none.tmpl %]
+
+<table align="center">
+  <tr>
+    <td>
+      [% IF has_bits.size %]
+        Для вашей учетной записи установлены права:
+        <table align="center">
+          [% FOREACH bit_description = has_bits %]
+            <tr>
+              <td>[% bit_description.name FILTER html %]</td>
+              <td>[% bit_description.desc FILTER html_light %]</td>
+            </tr>
+          [% END %]
+        </table>
+
+        [% FOREACH privs = ["editcomponents", "canconfirm", "editbugs"] %]
+          [% SET products = ${"local_$privs"} %]
+          [% IF products && products.size %]
+            <br>
+            <p>
+              Также установлены права '[% privs FILTER html %]' 
+              для следующих объектов:
+            </p>
+            <p>
+              [% FOREACH product = products %]
+                [% product.name FILTER html %]<br>
+              [% END %]
+            </p>
+          [% END %]
+        [% END %]
+
+      [% ELSE %]
+        Для вашей учетной записи прав не установлено.
+      [% END %]
+
+      [% IF user.in_group('editusers') %]
+        <br>
+        У вас есть право редактировать пользователей. Вы можете
+        включать и выключать все разрешения всем пользователям.
+      [% ELSIF set_bits.size %]
+        <br>
+        А также Вы можете управлять следующими правами 
+        <a href="editusers.cgi">других пользователей</a>:
+          <table align="center">
+          [% FOREACH bit_description = set_bits %]
+            <tr>
+              <td>[% bit_description.name FILTER html %]</td>
+              <td>[% bit_description.desc FILTER html_light %]</td>
+            </tr>
+          [% END %]
+          </table>
+      [% END %]
+
+      [% IF user.in_group('bz_sudoers') %]
+        <br>
+        Вы включены в группу <b>bz_sudoers</b> и можете 
+        <a href="relogin.cgi?action=prepare-sudo">работать от имени другого пользователя</a>.
+      [% END %]
+    </td>
+  </tr>
+</table>

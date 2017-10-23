@@ -1,0 +1,63 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# This is a list of terms that may be changed to "brand" the Bugzilla 
+  # instance (for example, referring to "bugs" as "issues".) When used, these
+  # strings are used in several different types of content, and are not  
+  # protected with Template-Toolkit FILTERs. Consequently, no special 
+  # characters are allowed.
+  #
+  # Remember to PROCESS rather than INCLUDE this template. 
+  #%]
+
+[% terms = {
+  "bug"      => "задача",
+  "bug_gen"  => "задачи",
+  "bug_dat"  => "задаче",
+  "bug_acc"  => "задачу",
+  "bug_abl"  => "задачей",
+  "bug_obj"  => "задаче",
+  "Bug"      => "Задача",
+  "Bug_gen"  => "Задачи",
+  "Bug_dat"  => "Задаче",
+  "Bug_acc"  => "Задачу",
+  "Bug_abl"  => "Задачей",
+  "Bug_obj"  => "Задаче",
+  "abug"     => "задача", # стараемся не использовать в Bugzilla-ru
+  "ABug"     => "Задача", # стараемся не использовать в Bugzilla-ru
+  "bugs"     => "задачи",
+  "bugs_gen" => "задач",
+  "bugs_dat" => "задачам",
+  "bugs_acc" => "задачи",
+  "bugs_abl" => "задачами",
+  "bugs_obj" => "задачах",
+  "Bugs"     => "Задачи",
+  "Bugs_gen" => "Задач",
+  "Bugs_dat" => "Задачам",
+  "Bugs_acc" => "Задачи",
+  "Bugs_abl" => "Задачами",
+  "Bugs_obj" => "Задачах",
+  "zeroSearchResults" => "Задач не найдено",
+  "Bugzilla" => "Bugzilla"
+  }
+%]
+
+[% MACRO numeral(n, name1, name2, name5) BLOCK %]
+  [% n1 = n % 10 %]
+  [% n10 = n % 100 - n1 %]
+  [% IF n10 == 10 || n1 == 0 || n1 > 4 %]
+    [% name5 %]
+  [% ELSIF n1 == 1 %]
+    [% name1 %]
+  [% ELSE %]
+    [% name2 %]
+  [% END %]
+[% END %]
+
+[% USE Hook %]
+[% Hook.process("end") %]

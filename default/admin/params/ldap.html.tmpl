@@ -1,0 +1,44 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+[%
+   title = "LDAP"
+   desc = "Настройки, необходимые для использования аутентификации LDAP"
+%]
+
+[% param_descs = {
+  LDAPserver => "Имя (и, возможно, порт) сервера LDAP " _
+                "(например, ldap.company.com или ldap.company.com:portnum). " _
+                "Допускается использование синтаксиса URI, например "_
+                "ldaps://ldap.company.com (для безопасного соединения) или " _
+                "ldapi://%2fvar%2flib%2fldap_sock (для локального " _
+                "сокета). Несколько серверов или URI можно указать через " _
+                "запятую; они будут запрошены последовательно до получения " _
+                "успешного соединения.",
+
+  LDAPstarttls => "Использовать защищенный канал для связи с сервером " _
+                  "LDAP.",
+
+  LDAPbinddn => "Если сервер LDAP требует иерархическое имя (binddn) и пароль " _
+                "и не поддерживает анонимный доступ, укажите их " _
+                "(например, cn=default,cn=user:password). " _
+                "Как правило анонимный доступ разрешен и поле можно оставить пустым.",
+
+  LDAPBaseDN => "База иерархического имени для поиска пользователей " _
+                "(например, ou=People,o=Company).",
+
+  LDAPuidattribute => "Имя атрибута, содержащего регистрационное имя пользователя.",
+
+  LDAPmailattribute => "Имя атрибута LDAP, содержащего адрес " _
+                       "электронной почты пользователя. Если параметр " _
+                       "не установлен, ${terms.Bugzilla} использует имя пользователя LDAP "_
+                       " в качестве учетной записи ${terms.Bugzilla}.  В этом случае " _
+                       " потребуется настроить параметр \"emailsuffix\".",
+
+  LDAPfilter => "Фильтр LDAP, используемый через логическое И с атрибутом <tt>LDAPuidattribute</tt> " _
+                "для сужения списка разрешенных пользователей." }
+%]

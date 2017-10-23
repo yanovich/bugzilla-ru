@@ -1,0 +1,28 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[% PROCESS global/variables.none.tmpl %]
+
+[% PROCESS global/header.html.tmpl title = "Проверка целостности"
+                                   style_urls = ['skins/standard/admin.css'] %]
+
+<div>
+  <p>
+    [% terms.Bugzilla %] проверяет ссылочную целостность базы данных.
+    Этот процесс может занять несколько минут.
+  </p>
+
+  <p>
+    Найденные ошибки будут <span class="alert">выделены цветом</span>.
+    В зависимости от характера ошибок будут показаны ссылки на инструменты их
+    устранения.  После исправления ошибок проверка будет автоматически запущена
+    еще раз (и может занять больше времени, чем предыдущий запуск).
+  </p>
+</div>
+
+<hr>

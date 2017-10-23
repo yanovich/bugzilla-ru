@@ -1,0 +1,51 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[% PROCESS global/header.html.tmpl
+  title = "Удаление региона"
+%]
+
+<table border=1 cellpadding=4 cellspacing=0>
+<tr bgcolor="#6666ff">
+  <th valign="top" align="left">Поле</th>
+  <th valign="top" align="left">Значение</th>
+
+</tr><tr>
+  <td valign="top">Регион:</td>
+  <td valign="top">[% classification.name FILTER html %]</td>
+
+</tr><tr>
+  <td valign="top">Описание:</td>
+  <td valign="top">
+    [% IF classification.description %]
+      [% classification.description FILTER html_light %]
+    [% ELSE %]
+      <font color="red">не указано</font>
+    [% END %]
+  </td>
+
+</tr><tr>
+  <td valign="top">Порядок сортировки:</td>
+  <td valign="top">[% classification.sortkey FILTER html %]</td>
+
+</tr>
+</table>
+
+<h2>Подтверждение</h2>
+
+<p>Удалить этот регион?<p>
+<form method=post action="editclassifications.cgi">
+  <input type=submit value="Да, удалить">
+  <input type=hidden name="action" value="delete">
+  <input type=hidden name="classification" value="[% classification.name FILTER html %]">
+  <input type="hidden" name="token" value="[% token FILTER html %]">
+</form>
+
+[% PROCESS admin/classifications/footer.html.tmpl %] 
+
+[% PROCESS global/footer.html.tmpl %] 

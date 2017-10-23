@@ -1,0 +1,42 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+[%
+   title = "Редактирование ${terms.bugs_gen}"
+   desc = "Настройка параметров редактирования ${terms.bugs_gen}"
+%]
+
+[% PROCESS "global/field-descs.none.tmpl" %]
+
+[% accept_status = display_value('bug_status', 'IN_PROGRESS') FILTER html %]
+
+[% param_descs = {
+  duplicate_or_move_bug_status => "Использовать это состояние при принятии решения о дублировании " _
+                                  "${terms.bug_gen} или при перемещении в другую базу данных.",
+
+  letsubmitterchoosepriority => "Разрешить при регистрации $terms.bugs_gen выбирать " _
+                                "приоритет по своему усмотрению. " _
+                                "Если параметр не включен, все $terms.bugs изначально имеют " _
+                                "приоритет, установленный по умолчанию.",
+
+  letsubmitterchoosemilestone => "Разрешить при регистрации $terms.bugs_gen выбирать " _
+                                 "значение плана. " _
+                                 "Если параметр не включен, все $terms.bugs изначально имеют " _
+                                 "значение, установленное по умолчанию для объекта.",
+
+  musthavemilestoneonaccept => "При использовании ${field_descs.target_milestone} требовать указания"
+                             _ " значения плана для перевода ${terms.bug_gen} в состояние ${accept_status}.",
+
+  commentonchange_resolution => "Обязателен комментарий при изменении " _
+                                "решения по ${terms.bug_dat}.",
+
+  commentonduplicate => "Обязателен комментарий при принятии решения " _
+                        "о дублировании ${terms.bug_gen}.",
+
+  noresolveonopenblockers => "Запретить принятие решений по ${terms.bug_dat}, " _
+                             "имеющей нерешенные зависимости." }
+%]

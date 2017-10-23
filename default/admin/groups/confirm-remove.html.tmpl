@@ -1,0 +1,49 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# INTERFACE:
+  # group: The Bugzilla::Group being changed.
+  # regexp: the regexp according to which the update is performed.
+  #%]
+
+[% IF regexp %]
+  [% title = "Подтверждение: исключение пользователей из группы по шаблону?" %]
+[% ELSE %]
+  [% title = "Подтверждение: исключение всех явно заданных пользователей из группы?" %]
+[% END %]
+
+[% PROCESS global/header.html.tmpl
+  title = title
+  doc_section = "groups.html"
+%]
+
+[% IF regexp %]
+  <p>Подтвердите удаление из группы '[% group.name FILTER html %]' всех пользователей,
+    чьи учетные записи соответствуют шаблону:
+    '[% regexp FILTER html %]'</p>
+[% ELSE %]
+  <p>Подтвердите удаление из группы '[% group.name FILTER html %]
+    всех явно заданных пользователей.'</p>
+[% END %]
+  
+<p>Обычно эти функции требуются только при настройке групп, созданных
+  в [% terms.Bugzilla %] версии 2.16 и ранее.  Используйте их 
+  <b>очень осторожно</b>, только после изучения документации.
+</p>
+    
+<form method="post" action="editgroups.cgi">
+  <input type="hidden" name="group_id" value="[% group.id FILTER html %]">
+  <input type="hidden" name="regexp" value="[% regexp FILTER html %]">
+  <input type="hidden" name="action" value="remove_regexp">
+  
+  <input name="token" type="hidden" value="[% token FILTER html %]">
+  <input id="confirm" name="confirm" type="submit" value="Исключить">
+  <p>или <a href="editgroups.cgi">вернуться к списку групп</a>.</p>
+</form>
+    
+[% PROCESS global/footer.html.tmpl %] 

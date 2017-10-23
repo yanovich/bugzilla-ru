@@ -1,0 +1,139 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# INTERFACE:
+  # comp: object; Bugzilla::Component object representing the component the
+  #               user wants to delete.
+  # product: object; Bugzilla::Product object representing the product to
+  #               which the component belongs.
+  #%]
+
+[% title = BLOCK %]Удаление раздела '[% comp.name FILTER html %]'
+объекта '[% product.name FILTER html %]'
+  [% END %]
+
+[% PROCESS global/header.html.tmpl
+  title = title
+  style_urls = ['skins/standard/admin.css']
+%]
+
+<table border="1" cellpadding="4" cellspacing="0">
+<tr bgcolor="#6666FF">
+  <th valign="top" align="left">Поле</th>
+  <th valign="top" align="left">Значение</th>
+</tr>
+<tr>
+  <td valign="top">Раздел:</td>
+  <td valign="top">[% comp.name FILTER html %]</td>
+</tr>
+<tr>
+  <td valign="top">Описание раздела:</td>
+  <td valign="top">[% comp.description FILTER html_light %]</td>
+</tr>
+<tr>
+  <td valign="top">Ответственный исполнитель:</td>
+  <td valign="top">[% comp.default_assignee.login FILTER html %]</td>
+  
+[% IF Param('useqacontact') %]
+</tr>
+<tr>
+  <td valign="top">Ответственный за приемку:</td>
+  <td valign="top">[% comp.default_qa_contact.login FILTER html %]</td>
+[% END %]
+  
+</tr>
+<tr>
+  <td valign="top">Раздел объекта:</td>
+  <td valign="top">[% product.name FILTER html %]</td>
+
+[% IF product.description %]
+</tr>
+<tr>
+  <td valign="top">Описание объекта:</td>
+  <td valign="top">[% product.description FILTER html_light %]</td>
+[% END %]
+
+[% IF Param('usetargetmilestone') %]
+</tr>
+<tr>
+  <td valign="top">Планы объекта:</td>
+  <td valign="top">
+    <a href="[% product.milestone_url FILTER html %]">
+      [% product.milestone_url FILTER html %]
+    </a>
+  </td>
+[% END %]
+
+</tr>
+<tr>
+  <TD VALIGN="top">Открыт для регистрации [% terms.bugs_gen %]:</TD>
+  <TD VALIGN="top">[% IF product.is_active && comp.isactive %]Да[% ELSE %]Нет[% END %]</td>
+</tr>
+<tr>
+  <td valign="top">[% terms.Bugs_gen %]:</td>
+  <td valign="top">
+[% IF comp.bug_count %]
+  <a title="Список [% terms.bugs_gen %] раздела '[% comp.name FILTER html %]'"
+     href="buglist.cgi?component=[% comp.name FILTER uri %]&amp;product=
+          [%- product.name FILTER uri %]">[% comp.bug_count %]</a>
+[% ELSE %]
+  Не зарегистрировано
+[% END %]
+  </td>
+</tr>
+</table>
+
+<h2>Подтверждение</h2>
+  
+[% IF comp.bug_count %]
+
+  [% IF !Param("allowbugdeletion") %]
+  <p class="confirmation">
+    Для раздела 
+    [% numeral(comp.bug_count,
+       "зарегистрирована ${comp.bug_count} ${terms.bug}",
+       "зарегистрировано ${comp.bug_count} ${terms.bug_gen}",
+       "зарегистрировано ${comp.bug_count} ${terms.bugs_gen}")
+    FILTER html %].  
+    Без переноса их в другие разделы удаление невозможно.
+  </p>
+  [% ELSE %]
+
+    <table border="0" cellpadding="20" width="70%" bgcolor="red"><tr><td>
+
+      Для раздела 
+      [% numeral(comp.bug_count,
+         "зарегистрирована ${comp.bug_count} ${terms.bug}",
+         "зарегистрировано ${comp.bug_count} ${terms.bugs}",
+         "зарегистрировано ${comp.bug_count} ${terms.bugs_gen}")
+      FILTER html %]!  Удаление 
+      раздела приведет к удалению <b>ВСЕХ</b> его 
+      [% terms.bugs_gen %] и переписки по ним.
+      </td></tr></table>
+
+  [% END %]
+
+[% END %]
+
+[% IF comp.bug_count == 0 || Param('allowbugdeletion') %]
+
+  <p>Удалить раздел?</p>
+  
+  <form method="post" action="editcomponents.cgi">
+  <input type="submit" id="delete" value="Да, удалить">
+  <input type="hidden" name="action" value="delete">
+  <input type="hidden" name="product" value="[% product.name FILTER html %]">
+  <input type="hidden" name="component" value="[% comp.name FILTER html %]">
+  <input type="hidden" name="token" value="[% token FILTER html %]">
+  </form>
+
+[% END %]
+
+[% PROCESS admin/components/footer.html.tmpl %]
+
+[% PROCESS global/footer.html.tmpl %] 

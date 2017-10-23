@@ -1,0 +1,42 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[% PROCESS global/variables.none.tmpl %]
+[% title = BLOCK %]
+  Подтвердите смену группы, сопоставленной объекту '[%- product.name FILTER html %]'
+[% END %]
+
+[% PROCESS global/header.html.tmpl title = title %]
+[% FOREACH group = mandatory_groups %]
+<P>
+Для [% group.count %]&nbsp;[% terms.bugs_gen %] группа '[% group.name FILTER html %]' 
+с этого момента является обязательной и будет добавлена к списку групп каждой [% terms.bug_gen %].
+[% END %]
+
+[% FOREACH group = na_groups %]
+<P>
+Для [% group.count %]&nbsp;[% terms.bugs_gen %] группа '[% group.name FILTER html %]' 
+с этого момента неприменима и будет удалена из списка групп каждой [% terms.bug_gen %].
+[% END %]
+<form action="editproducts.cgi" method="post" >
+
+  [% PROCESS "global/hidden-fields.html.tmpl" exclude="^Bugzilla_(login|password)$" %]
+
+  <br>
+     Нажмите "Сохранить", чтобы произвести действия, указанные выше.
+     Если вы не хотите этого, нажмите "Назад", чтобы вернуться на предыдущую 
+     страницу.
+  <p>
+    <input type="hidden" name="confirmed" value="confirmed">
+    <input type="submit" id="update" value="Сохранить">
+  </p>
+
+</form>
+
+
+[% PROCESS global/footer.html.tmpl %]

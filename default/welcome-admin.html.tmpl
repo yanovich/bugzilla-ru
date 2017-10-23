@@ -1,0 +1,75 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# INTERFACE:
+  # none
+  #%]
+
+[% title = BLOCK %]Добро пожаловать в [% terms.Bugzilla %][% END %]
+
+[% PROCESS global/header.html.tmpl
+   title = title
+   header_addl_info = "version $constants.BUGZILLA_VERSION"
+   style_urls = [ 'skins/standard/index.css' ]
+%]
+
+<div id="welcome-admin">
+  <p>Добро пожаловать, [% user.identity FILTER html %].</p>
+
+  <p>Появление этой страницы вызвано незавершенной настройкой некоторых основных параметров 
+  системы.  Цель – проинформировать Вас о необходимых действиях для завершения настройки 
+  данного экземпляра системы.</p>
+
+  <p>Пользователю с привилегиями администратора доступен административный интерфейс 
+  системы по ссылке <a href="admin.cgi">Администрирование</a> внизу этой страницы. 
+  Эта ссылка доступны всегда, с любой страницы.  На административной странице 
+  обязательно следует посетить раздел <a href="editparams.cgi">Настройки</a>, который
+  позволяет устанавливать обязательные параметры экземпляра, в частности:</p>
+
+  <ul>
+    <li><a href="editparams.cgi?section=core#urlbase_desc">urlbase</a>, адрес URL данного
+    экземпляра системы, используемый в сообщениях электронной почты (до тех пор пока 
+    параметр не будет настроен, эта страница будет отображаться вместо стартовой
+    страницы системы).</li>
+
+    <li><a href="editparams.cgi?section=core#cookiepath_desc">cookiepath</a> также важен
+    для корректной обработки cookies веб-обозревателем.</li>
+    
+    <li><a href="editparams.cgi?section=general#maintainer_desc">maintainer</a>, ответственный
+    за этот экземпляр системы, контактное лицо в случае возникновения проблем.</li>    
+  </ul>
+
+  <p>Другие важные параметры:</p>
+
+  <ul>
+    <li><a href="editparams.cgi?section=auth#requirelogin_desc">requirelogin</a>: при включении
+    данного параметра незарегистрированные пользователи не имеют доступа к системе.
+    Иными словами, пользователь не может видеть никаких данных без явной аутентификации, 
+    в системе. Это то, что Вам требуется для сохранения конфиденциальности данных в системе.</li>
+
+    <li><a href="editparams.cgi?section=auth#createemailregexp_desc">createemailregexp</a>
+    определяет, какие пользователи имею право самостоятельно регистрироваться в системе.
+    Значение ".*" (по умолчанию) позволяет создавать учетную запись любому пользователю.
+    Значение "@mycompany.com$" разрешает регистрацию только пользователям с почтовыми адресами 
+    @mycompany.com. Если значение параметра пусто, никто не может зарегистрироваться в системе 
+    самостоятельно, все учетные записи должны быть созданы администратором. Если вы создаете
+    систему не для всеобщего доступа, установленное по умолчанию значение следует изменить.</li>
+
+    <li><a href="editparams.cgi?section=mta#mail_delivery_method_desc">mail_delivery_method</a>
+    определяет способ отправки электронной почты, например вызов sendmail или использование SMTP. 
+    Без этого параметра отправка электронной почты не обеспечивается.</li>
+  </ul>
+
+  <p>
+    После установки всех перечисленных параметров обратите внимание на остальные параметры 
+    [% terms.Bugzilla %], изучите их назначение и примите решение о необходимости их настройки 
+    для Вашей системы.
+  </p>
+</div>
+
+[% PROCESS global/footer.html.tmpl %]

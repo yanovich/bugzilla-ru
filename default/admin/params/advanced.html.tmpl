@@ -1,0 +1,66 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[% 
+   title = "Дополнительные"
+   desc = "Настройки для дополнительной конфигурации."
+%]
+
+[% sts_desc = BLOCK %]
+  Включает отправку заголовка 
+  <a href="http://en.wikipedia.org/wiki/Strict_Transport_Security">Strict-Transport-Security</a>
+  при отправке HTTP запросов по SSL-соединениям. Это повышает защищённость
+  ваших SSL-соединений заставляя браузер всегда соединяться с вашим доменом с использованием
+  SSL и никогда не принимать некорректный сертификат. 
+  Однако, его следует использовать только если вы включили параметр <code>ssl_redirect</code>, 
+  [% terms.Bugzilla %] является единственной службой работающей в этом домене
+  (т.е., ваш <code>urlbase</code> это что-то вроде
+  <code>http://bugzilla.example.com/</code>) и вы планируете никогда не отключать
+  параметр <code>ssl_redirect</code>.
+  <ul>
+    <li>
+      off - Не отправлять с запросами заголовок Strict-Transport-Security.
+    </li>
+    <li>
+      this_domain_only - Отправлять со всеми запросами заголовок Strict-Transport-Security,
+      но поддерживать его только для текущего домена.
+    </li>
+    <li>
+      include_subdomains - Отправлять заголовок Strict-Transport-Security вместе с
+      флагом <code>includeSubDomains</code>, что применяет политику безопасности к 
+      всем субдоменам. Это особенно полезно в комбинации с <code>attachment_base</code>
+      который существует как субдомен в главном домене [% terms.Bugzilla %].
+    </li>
+  </ul>
+[% END %]
+
+[% param_descs = {
+  cookiedomain => 
+    "Для сайта с адресом 'www.foo.com' установка значения"
+    _ " '.foo.com' даёт доступ к cookies $terms.Bugzilla"
+    _ " также сайту 'bar.foo.com'. Используется в случаях когда доступ"
+    _ " к серверу возможен под разными именами и требуется сохранить"
+    _ " значения $terms.Bugzilla cookie.",
+
+  inbound_proxies =>
+    "Когда трафик, входящий в $terms.Bugzilla проходит через прокси,"
+    _ " $terms.Bugzilla думает, что IP-адрес каждого пользователя"
+    _ " равен IP-адресу прокси. Если вы введете в это поле список IP-адресов,"
+    _ " разделённых запятыми, то $terms.Bugzilla будет доверять любому"
+    _ " заголовку <code>X-Forwarded-For</code> отправленному с этих IP, и"
+    _ " использовать значение этого заголовка в качестве IP-адрес конечного пользователя.",
+
+  proxy_url => 
+    "$terms.Bugzilla использует доступ в Интернет для оповещения о новых"
+    _ " релизах, согласно значению параметра <tt>upgrade_notification</tt>. Если для"
+    _ " доступа обязательно использование прокси, может потребоваться указание его адреса здесь,"
+    _ " если для сервера Web не установлена переменная окружения HTTP_PROXY.  Если для доступа"
+    _ " требуются имя и пароль, укажите их в виде <code>http://имя:пароль@proxy_url/</code>.",
+
+  strict_transport_security => sts_desc,
+} %]

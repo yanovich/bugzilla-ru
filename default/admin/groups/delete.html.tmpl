@@ -1,0 +1,160 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# INTERFACE:
+  # group: A Bugzilla::Group object representing the group that is
+  #        about to be deleted.
+  # shared_queries: int; The number of queries being shared with this
+  #                 group.
+  #%]
+
+
+[% PROCESS global/header.html.tmpl
+  title = "Удаление группы"
+  doc_section = "groups.html"
+%]
+
+<table border="1">
+  <tr>
+    <th>ID</th>
+    <th>Имя</th>
+    <th>Описание</th>
+  </tr>
+  <tr>
+    <td>[% group.id FILTER html %]</td>
+    <td>[% group.name FILTER html %]</td>
+    <td>[% group.description FILTER html_light %]</td>
+  </tr>
+</table>
+
+<form method="post" action="editgroups.cgi">
+  [% IF group.members_non_inherited.size %]
+    <p><b>В состав этой группы напрямую включены 
+    [% group.members_non_inherited.size FILTER html %] пользователей.
+    Непустая группа не подлежит удалению.</b>
+
+    <br><a href="editusers.cgi?action=list&amp;groupid=
+                 [%- group.id FILTER uri %]&amp;grouprestrict=1">Показать 
+    список членов группы</a> - <label><input type="checkbox" name="removeusers">Исключить
+    всех автоматически.</label></p>
+  [% END %]
+
+  [% IF group.granted_by_direct(constants.GROUP_MEMBERSHIP).size %]
+    <p><b>Члены этой группы унаследовали членство в следующих группах:</b></p>
+    <ul>
+      [% FOREACH grantor = group.granted_by_direct(constants.GROUP_MEMBERSHIP) %]
+        <li>[% grantor.name FILTER html %]</li>
+      [% END %]
+    </ul>
+  [% END %]
+
+  [% IF group.bugs.size %]
+    <p><b>Зарегистрированы [% group.bugs.size FILTER html %] [%+ terms.bug %], доступ
+    к которым дан только членам этой группы reports. Группа, используемая для разграничения
+    доступа к [% terms.bugs_dat %] не подлежит удалению.</b>
+
+    <br><a href="buglist.cgi?field0-0-0=bug_group&amp;type0-0-0=equals&amp;value0-0-0=
+                 [%- group.name FILTER uri %]">Показать 
+    список [% terms.bugs_gen %]</a> - 
+    <label><input type="checkbox" name="removebugs">Удалить
+    все связи с этой группой автоматически.</label></p>
+
+    <p><b>Внимание:</b> Использование этой функции может сделать некоторые [% terms.bugs %]
+    общедоступными. <b>Настоятельно рекомендуется</b> изучить все принадлежащие
+    группе [% terms.bugs %] и проверить права доступа.</p>
+  [% END %]
+
+  [% IF group.products.size %]
+    <p><b>Эта группа сопоставлена со следующими объектами:</b></p>
+    [% SET any_hidden = 0 %]
+    <ul>
+      [% FOREACH data = group.products %]
+
+        [% SET active = [] %]
+        [% FOREACH control = data.controls.keys.sort %]
+          [% NEXT IF !data.controls.$control %]
+          [% IF control == 'othercontrol' OR control == 'membercontrol' %]
+            [% SWITCH data.controls.$control %]
+              [% CASE constants.CONTROLMAPMANDATORY %]
+                [% SET type = "Mandatory" %]
+              [% CASE constants.CONTROLMAPSHOWN %]
+                [% SET type = "Shown" %]
+              [% CASE constants.CONTROLMAPDEFAULT %]
+                [% SET type = "Default" %]
+            [% END %]
+            [% active.push("$control: $type") %]
+          [% ELSE %]
+            [% active.push(control) %]
+          [% END %]
+        [% END %]
+
+        [% SET hidden = 0 %]
+        [% IF data.controls.othercontrol == constants.CONTROLMAPMANDATORY
+              AND data.controls.membercontrol == constants.CONTROLMAPMANDATORY
+              AND data.controls.entry 
+        %]
+          [% SET hidden = 1 %]
+        [% END %]
+
+        <li><a href="editproducts.cgi?action=editgroupcontrols&amp;product=
+                    [%- data.product.name FILTER uri %]">
+          [%- data.product.name FILTER html %]</a>
+          ([% active.join(', ') FILTER html %])
+          [% IF hidden %]
+            <strong>ПРЕДУПРЕЖДЕНИЕ: Этот объект в данное время скрыт.
+            Удаление этой группы сделает этот объект общедоступным,
+            если он не подпадает под другую группу.
+            </strong>
+          [% END %]</li>
+      [% END %]
+    </ul>
+
+    <p><label><input type="checkbox" name="unbind">Удалить группу и удалить
+    эти права доступа.</label></p>
+  [% END %]
+  
+  [% IF group.flag_types.size %]
+    <p><b>Эта группа используется при определении прав на согласование.
+    Группа, используемая для контроля согласований, не подлежит удалению.</b>
+
+    <br><a href="editflagtypes.cgi?action=list&amp;group=
+                 [%- group.id FILTER uri %]">Показать
+    список видов согласований</a> - 
+    <label><input type="checkbox" name="removeflags">Удалить
+    соответствующие ограничения для согласований.</label></p>
+  [% END %]
+
+  [% IF shared_queries %]
+    <p>
+      <b>Для этой группы опубликовано условий отбора: [% shared_queries %]</b>
+      Удаление группы приведет к тому, что эти условия будут доступны
+      только их владельцам.
+    </p>
+  [% END %]
+
+  <h2>Подтверждение</h2>
+
+  <p>Вы действительно хотите удалить группу.?</p>
+  [% IF group.users.size || group.bugs.size || group.products.size 
+        || group.flags.size
+  %]
+    <p><b>Вы должны отметить все флаги на этой странице или исправить описанные
+          проблемы вручную до начала удаления.</b></p>
+  [% END %]
+
+  <p>
+    <input type="submit" id="delete" value="Да, удалить">
+    <input type="hidden" name="action" value="delete">
+    <input type="hidden" name="group" value="[% group.id FILTER html %]">
+    <input type="hidden" name="token" value="[% token FILTER html %]">
+  </p>
+</form>
+
+Вернуться к <a href="editgroups.cgi">списку групп</a>.
+
+[% PROCESS global/footer.html.tmpl %] 

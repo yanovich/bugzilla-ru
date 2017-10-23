@@ -1,0 +1,80 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# INTERFACE
+  # none
+  # 
+  # Param("maintainer") is used to display the maintainer's email.
+  # Param("emailsuffix") is used to pre-fill the email field.
+  #%]
+
+[% PROCESS global/variables.none.tmpl %]
+
+[% title = BLOCK %]
+  Регистрация пользователя [% terms.Bugzilla %]
+[% END %]
+
+[% PROCESS global/header.html.tmpl
+           title = title
+           onload = "document.forms['account_creation_form'].login.focus();" %]
+
+<p>
+  Чтобы зарегистрироваться, достаточно указать
+[% IF Param('emailsuffix') == '' %]
+  адрес электронной почты.
+[% ELSE %]
+  имя почтового ящика, которое в комбинации с [% Param('emailsuffix') %]
+  соответствует Вашему адресу электронной почты.
+[% END %]
+  По этому адресу будет отправлено сообщение с подтверждением.
+  <b>Вы не сможете войти в систему до того как получите сообщение.</b> 
+  Если сообщение не будет получено, свяжитесь с администратором  
+  [% terms.Bugzilla %] 
+  <a href="mailto:[% Param("maintainer") %]">[% Param("maintainer") %]</a>.
+</p>
+
+<p>
+  Для регистрации новых [% terms.bugs_gen %] или добавления комментариев в
+  существующие ошибки необходимо иметь учётную запись, чтобы с вами могли
+  связаться, если потребуется дополнительная информация.
+  Это также позволит другим пользователям чётко определить, кто является
+  автором комментариев или изменений, произведённых в [% terms.bugs_dat %]. 
+  <b>Обратите внимание, что ваш адрес электронной почты <u>никогда</u> не будет
+  показан незарегистрированным пользователям. Его смогут увидеть только
+  зарегистрированные пользователи.</b>
+</p>
+
+[% IF Param('createemailregexp') == '.*' && Param('emailsuffix') == '' %]
+<p>
+  <b>ОБРАТИТЕ ВНИМАНИЕ:</b> [% terms.Bugzilla %] — общедоступная система
+  отслеживания [% terms.bugs_gen %].  Данные о многих [% terms.bugs_obj %],
+  включая адреса электронной почты, доступны зарегистрированным пользователям.
+  <b>Рекомендуется</b> использовать неосновной почтовый ящик или
+  бесплатную почтовую службу (например, Gmail, Яндекс.Почта, Mail.ru и т.п.)
+  во избежание получения нежелательной почты (спама) в основной почтовый ящик.
+</p>
+[% END %]
+
+<form id="account_creation_form" method="get" action="createaccount.cgi">
+  <table>
+    <tr>
+      <td align="right">
+        <b>Адрес электронной почты:</b>
+      </td>
+      <td>
+        <input size="35" id="login" name="login">
+        [% Param('emailsuffix') FILTER html %]
+      </td>
+    </tr>
+  </table>
+  <br>
+  <input type="hidden" id="token" name="token" value="[% issue_hash_token(['create_account']) FILTER html %]">  
+  <input type="submit" id="send" value="Зарегистрироваться">
+</form>
+
+[% PROCESS global/footer.html.tmpl %]

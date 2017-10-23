@@ -1,0 +1,331 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[% PROCESS "global/variables.none.tmpl" %]
+
+[% PROCESS "global/field-descs.none.tmpl" %]
+
+[% INCLUDE global/header.html.tmpl
+   title  = "Быстрый поиск в $terms.Bugzilla",
+   style_urls = ['skins/standard/page.css'] 
+   onload = 'document.forms[\'f\'].quicksearch.focus()'
+ %]
+
+[% USE Bugzilla %]
+
+<p><label for="quicksearch">Введите одно или несколько слов (или фрагментов слов)
+  для поиска:</label></p>
+
+<form name="f" action="buglist.cgi" method="get"
+      onsubmit="if (this.quicksearch.value == '')
+                { alert('Введите слова для поиска.');
+                  return false; } return true;">
+  <input type="text" size="40" name="quicksearch" id="quicksearch">
+  <input type="submit" value="Искать" id="find">
+</form>
+
+<ul>
+  <li><a href="#basics">Основы</a></li>
+  <li><a href="#basic_examples">Примеры простых запросов</a></li>
+  <li><a href="#fields">Поля в которых можно вести поиск</a></li>
+  <li><a href="#advanced_features">Расширенные возможности</a></li>
+  <li><a href="#shortcuts">Дополнительные ярлыки</a></li>
+  <li><a href="#advanced_examples">Примеры сложных запросов</a></li>
+</ul>
+
+<h2 id="basics">Основы</h2>
+
+<ul class="qs_help">
+  <li>Если вы просто введёте слово или несколько слов в поле поиска, 
+    [%+ terms.Bugzilla %] будет искать ваше слово или слова в полях 
+    [%+ field_descs.product FILTER html %],
+    [%+ field_descs.component FILTER html %], 
+    [%+ IF use_keywords %][%+ field_descs.keywords FILTER html %],[% END %]
+    [%+ field_descs.alias FILTER html %],
+    [%+ field_descs.short_desc FILTER html %] 
+    [%+ IF Param('usestatuswhiteboard') %][% field_descs.status_whiteboard FILTER html %],[% END %]
+    и [% field_descs.longdesc FILTER html %].</li>
+
+  <li>Введя только <strong>номер</strong> в поле поиска, вы перейдете прямо в
+     [% terms.bug_acc %] с этим номером. Кроме того, введя только
+     <strong>имя</strong> [% terms.bug_gen %], вы перейдете прямо в эту
+     [% terms.bug_acc %].
+   </li>
+
+  <li>Добавление дополнительных терминов <strong>сужает</strong> поиск, а не
+     расширяет его. (Другими словами, [% terms.Bugzilla %] ищет 
+     [%+ terms.bugs %] которые подходят под <em>все</em> ваши критерии, а не
+     [%+ terms.bugs %] которые подходят под <em>любой</em> из ваших критериев.)</li>
+
+  <li>Поиск ведется <strong>без учета регистра</strong>. Так что
+      <kbd>таблица</kbd>, <kbd>Таблица</kbd> и <kbd>ТАБЛИЦА</kbd> дают одинаковый
+       результат.</li>
+
+  <li>[% terms.Bugzilla %] не просто ищет введённое вами точное слово, но также
+     ищет любое слово <strong>содержащее</strong> это слово. Так, например, при
+     поиске слова "кот" найдутся [% terms.bugs %], которые содержат его в
+     качестве фрагментов других слов &mdash; например, [% terms.abug %] упоминающая
+     "с<strong>кот</strong>" или "ро<strong>кот</strong>". Однако, поиск не
+     найдет фрагментов слов в полях [% field_descs.longdesc FILTER html %] или 
+     [% field_descs.keywords FILTER html %] &mdash; только целые слова.</li>
+
+  <li>По умолчанию, поиск производится только в <strong>открытых</strong> 
+     [% terms.bugs_obj %]. Если вы хотите знать, как искать в закрытых [% terms.bugs_obj %],
+     обратитесь к разделу <a href="#shortcuts">Дополнительные ярлыки</a>.</li>
+
+  <li>Если вы хотите искать в  областях <strong>конкретных полей</strong>, вы
+     можете сделать запрос в виде <kbd>поле:значение</kbd>, где <kbd>поле</kbd>
+     является одним из <a href="#fields">имен полей</a>, перечисленных ниже в
+     этом документе, а <kbd>значение</kbd> является значением поля, которое вы
+     хотите найти в этом поле. Если вы введёте в поле <kbd>значение</kbd>
+     запятые, то оно будет интерпретировано как список значений, и будет
+     произведён поиск [% terms.bugs_gen %] подходящих под <em>любое</em> из этих
+     значений.</li>
+ </ul>
+
+<h2 id="basic_examples">Примеры простых запросов</h2>
+
+<p>Здесь приведены примеры составления некоторых простых запросов.
+  Ниже на этой странице можно найти
+  <a href="#advanced_examples">Примеры составления более сложных запросов</a>.</p>
+
+<ul class="qs_help">
+  <li>Все открытые [% terms.bugs %], в которых userA@company.com находится в списке подписчиков
+    (нет необходимости упоминать открытые [% terms.bugs %], так как это значение по умолчанию):<br>
+    <kbd>cc:userA@company.com</kbd></li>
+  <li>Все неподтверждённые [% terms.bugs %] в объекте productA (помещение
+    состояния [%+ terms.bug_gen %] в первую позицию автоматически делает его состоянием
+    искомых [% terms.bugs_gen %]):<br>
+    <kbd>UNCONFIRMED product:productA</kbd>
+  <li>Все открытые и закрытые [% terms.bugs %], зарегистрированные userB@company.com
+    (необходимо указать в качестве первого слова ALL, иначе будут выведены только
+     открытые [% terms.bugs %]):<br>
+    <kbd>ALL reporter:userB@company.com</kbd>
+  <li>Все открытые [% terms.bugs %], имеющие серьёзность "чрезвычайная" и "критическая", и 
+    чей план установлен на 2.5:<br>
+    <kbd>severity:blocker,critical milestone:2.5</kbd>
+  <li>Все открытые [% terms.bugs %] в разделе Research & Development
+    имеющие важность P1 или P2 (необходимо использовать кавычки для раздела, так как его имя
+    содержит пробелы):<br>
+    <kbd>component:"Research & Development" priority:P1,P2</kbd></li>
+</ul>
+
+<h2 id="fields">Поля в которых можно вести поиск</h2>
+
+<p>Вы можете указать любое из этих полей в виде <kbd>поле:значение</kbd> в
+  панели поиска, чтобы произвести в них поиск. Вы также можете ввести
+  сократить имя поля, если сокращённое имя будет подходит лишь под имя одного
+  поля. Так, например, поиск по <kbd>stat:VERIFIED</kbd> найдет все
+  [%+ terms.bugs %] в состоянии <kbd>VERIFIED</kbd>. У некоторых полей есть
+  несколько имён, и вы можете использовать любое из этих имён для поиска
+  по ним.</p>
+
+[% IF Bugzilla.active_custom_fields.size %]
+  [% SET first_field = Bugzilla.active_custom_fields.0 %]
+  <p>Для настраиваемых полей можно использовать часть их имени (или сокращённую
+  часть их имени) расположенную <em>после</em> префикса <kbd>cf_</kbd>, в
+  дополнение к их стандартному имени начинающемся с <kbd>cf_</kbd>. Так,
+  например, на <kbd>[% first_field.name FILTER html %]</kbd> можно также
+  сослаться по имени <kbd>[% first_field.name.replace('^cf_') FILTER html %]</kbd>.
+  Однако, если это приведёт к конфликту между именами стандартных полей
+  [%+ terms.Bugzilla %] и именами настраиваемых полей, приоритет всегда будет
+  отдан именам стандартных полей.</p>
+[% END %]
+
+[% SET field_table = {} %]
+[% FOREACH field = quicksearch_field_names.keys %]
+  [% description = field_descs.$field %]
+  [% field_table.$description = quicksearch_field_names.${field} %]
+[% END %]
+
+
+<table cellspacing="0" cellpadding="0" border="0" class="qs_fields">
+  <thead>
+    <tr>
+      <th class="field_name">Поле</th>
+      <th class="field_nickname">Имя или имена поля для поиска</th>
+    </tr>
+  </thead>
+  <tbody>
+    [% FOREACH desc = field_table.keys.sort %]
+      <tr>
+        <td class="field_name">[% desc FILTER html %]</td>
+        <td class="field_nickname">
+          [% FOREACH nickname = field_table.$desc %]
+            <kbd>[% nickname FILTER html %]</kbd>
+            [% ",&nbsp; " UNLESS loop.last %]
+          [% END %]
+      </tr>
+    [% END %]
+  </tbody>
+</table>
+
+<h2 id="advanced_features">Расширенные возможности</h2>
+
+<ul class="qs_help">
+  <li>Если вы хотите найти <strong>фразу</strong> или что-то, что содержит
+    пробелы, запятые, двоеточия или кавычки, вы должны поместить запрос в кавычки, например:
+    <kbd>"да, это фраза"</kbd>. Вы также должны использовать кавычки для поиска
+    символов, которые иначе были бы интерпретированы быстрым поиском
+    специальным образом. Например, <kbd>"this|that"</kbd> в буквальном смысле
+    будет искать фразу <em>this|that</em> и не будет распарсено как <kbd>"this OR that"</kbd>.
+    Также, <kbd>"-field:value"</kbd> в буквальном смысле будет искать
+    фразу <em>-field:value</em> и не будет распарсено как
+    <kbd>"NOT field:value"</kbd>.</li>
+
+  <li>При поиске вы можете использовать операторы <strong>AND</strong>,
+   <strong>NOT</strong> и <strong>OR</strong>. 
+
+    Вы можете также использовать <kbd>-</kbd> что означает "NOT" и <kbd>|</kbd>
+    что означает "OR". Для "AND" нет специального символа, так как по умолчанию
+    любые условия поиска, разделенные пробелом, соединены "AND".
+    Примеры:
+    <ul>
+      <li>
+        <strong>NOT</strong>:<br>
+        Используйте <kbd><strong>-</strong><em>summary:foo</em></kbd> чтобы
+        исключить [%+ terms.bugs %] с <kbd>foo</kbd> в аннотации.<br>
+        <kbd><em>NOT summary:foo</em></kbd> будет иметь тот же эффект.
+      </li>
+      <li>
+        <strong>AND</strong>:<br>
+        <kbd><em>foo bar</em></kbd> будет искать [% terms.bugs %] содержащие
+        и <kbd>foo</kbd> и <kbd>bar</kbd>.<br>
+        <kbd><em>foo AND bar</em></kbd> будет иметь тот же эффект.
+      </li>
+      <li>
+        <strong>OR</strong>:<br>
+        <kbd><em>foo<strong>|</strong>bar</em></kbd> будет искать 
+        [% terms.bugs %] содержащие <kbd>foo</kbd> ИЛИ <kbd>bar</kbd>.<br>
+        <kbd><em>foo OR bar</em></kbd> будет иметь тот же эффект.<br>
+      </li>
+    </ul>
+
+    <p>Вы не можете использовать ни | ни OR для перечисления возможных значений данного поля.
+      Вместо них вы должны использовать запятые. Так <kbd>field:value1,value2</kbd> будет делать
+      то, что вы ожидаете, но <kbd>field:value1|value2</kbd> будет интерпретировано как
+      <kbd>field:value1 OR value2</kbd>, что значит, что value2 не связано с
+      данным полем.</p>
+
+    <p>OR имеет более высокий приоритет, чем AND; AND является оператором
+       верхнего уровня.
+      Например:</p>
+    <p>Поиск <em><kbd>url|location bar|field -focus</kbd></em> означает
+      (<kbd>url</kbd> ИЛИ <kbd>location</kbd>) И (<kbd>bar</kbd> ИЛИ 
+      <kbd>field</kbd>) И (НЕ <kbd>focus</kbd>)</p>
+  </li>
+</ul>
+
+<h2 id="shortcuts">Дополнительные ярлыки</h2>
+
+<p>В дополнение к использованию <a href="#fields">имен полей</a> для поиска в
+   конкретных областях, есть определенные символы или слова, которые можно
+   использовать в качестве "ярлыков" для поиска в определенных областях:</p>
+
+<table cellspacing="0" cellpadding="0" border="0" class="qs_fields">
+  <thead>
+    <tr>
+      <th class="field_name">Поле</th>
+      <th class="field_nickname">Ярлык(и)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="field_name">[% field_descs.bug_status FILTER html %]</td>
+      <td class="field_nickname">
+        Делает <strong>первое слово</strong> вашего поиска именем любого
+        состояния, или даже аббревиатурой любого состояния, и производит поиск 
+        [% terms.bugs %] в этом состоянии. <strong><kbd>ALL</kbd></strong> это
+        специальный ярлык, который означает "все состояния".
+        <strong><kbd>OPEN</kbd></strong> это специальный ярлык, который
+        означает "все открытые состояния".
+      </td>
+    </tr>
+    <tr>
+      <td class="field_name">[% field_descs.resolution FILTER html %]</td>
+      <td class="field_nickname">
+        Делает <strong>первое слово</strong> вашего поиска именем любого
+        решения, или даже аббревиатурой любого решения, и производит поиск
+        [%+ terms.bugs %] с этим решением. Например, сделав <kbd>FIX</kbd>
+        первым словом вашего поиска вы найдёте все [%+ terms.bugs %] с решением
+        <kbd>FIXED</kbd> .
+    </tr>
+    <tr>
+      <td class="field_name">[% field_descs.priority FILTER html %]</td>
+      <td class="field_nickname">"<strong>P1</strong>" (как слово в любом месте
+      поискового запроса) означает "найти [% terms.bugs %] с наивысшим приоритетом". 
+        "P2" означает второй по важности приоритет и т.д.
+        <p>Поиск по "<strong>P1-3</strong>" найдёт [% terms.bugs %] с любым из
+        трёх самых высоких приоритетов и т.д.</p>
+      </td>
+    </tr>
+    <tr>
+      <td class="field_name">[% field_descs.assigned_to FILTER html %]</td>
+      <td class="field_nickname"><strong>@</strong><em>значение</em></td>
+    </tr>
+    <tr>
+      <td class="field_name">[% field_descs.product FILTER html %] или
+        [%+ field_descs.component FILTER html %]</td>
+      <td class="field_nickname"><strong>:</strong><em>значение</em></td>
+    </tr>
+    [% IF use_keywords %]
+      <tr>
+        <td class="field_name">[% field_descs.keywords FILTER html %]</td>
+        <td class="field_nickname"><strong>!</strong><em>значение</em></td>
+      </tr>
+    [% END %]
+    <tr>
+      [% SET key = "flagtypes.name" %]
+      <td class="field_name">[% field_descs.$key FILTER html %]</td>
+      <td class="field_nickname">
+        <em>флаг</em><strong>?</strong><em>инициатор</em>
+      </td>
+    </tr>
+    <tr>
+      <td class="field_name">[% field_descs.longdesc FILTER html %]
+        или [% field_descs.short_desc FILTER html %]</td>
+      <td class="field_nickname">
+        <strong>#</strong><em>значение</em>
+      </td>
+    </tr>
+    [% IF Param('usestatuswhiteboard') %]
+      <tr>
+        <td class="field_name">[% field_descs.short_desc FILTER html %]
+          или [% field_descs.status_whiteboard FILTER html %]</td>
+        <td class="field_nickname"><strong>[</strong><em>значение</em></td>
+      </tr>
+    [% END %]
+  </tbody>
+</table>
+
+<h2 id="advanced_examples">Примеры сложных запросов</h2>
+
+<p>Вы можете без особых усилий достаточно легко составлять сложные запросы.
+  Для составления очень сложных запросов, вам необходимо использовать
+  форму <a href="query.cgi?format=advanced">Расширенного поиска</a>.</p>
+
+<ul class="qs_help">
+  <li>Все [% terms.bugs %], зарегистрированные или назначенные userA@company.com 
+    (начальный @ является ярлыком для исполнителя, см. выше раздел
+    <a href="#shortcuts">Дополнительные ярлыки</a>):<br>
+    <kbd>ALL @userA@company.com OR reporter:userA@company.com</kbd></li>
+  <li>Все открытые [% terms.bugs %] в объекте productA либо с серьёзностью
+    "чрезвычайная", "критическая" или "серьёзная", либо с важностью P1, либо с установленным
+    согласованием blocker+, и которые не назначены ни userB@company.com ни
+    userC@company.com (предполагается, что у нас только два пользователя, подходящие
+    под userB и userC, иначе нужно будет писать логин целиком):<br>
+    <kbd>:productA sev:blocker,critical,major OR pri:P1 OR flag:blocker+ -assign:userB,userC</kbd></li>
+  <li>Все РЕШЁННЫЕ [% terms.bugs %] с установленным согласованием blocker+, но для которых
+    не установлено ни согласование approval+ ни согласование approval?:<br>
+    <kbd>FIXED flag:blocker+ -flag:approval+ -flag:approval?</kbd></li>
+  <li>[% terms.Bugs %], чья аннотация содержит фразу <em>That's a "unusual" issue</em>
+     (двойные кавычки экранируются при помощи <em>\"</em>):<br>
+    <kbd>summary:"That's a \"unusual\" issue"</kbd></li>
+</ul>
+
+[% PROCESS global/footer.html.tmpl %]

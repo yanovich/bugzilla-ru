@@ -1,0 +1,45 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+[%
+   title = "Поля ${terms.bugs_gen}"
+   desc = "Настройка используемых системой полей"
+%]
+
+[% param_descs = {
+  useclassification => "Использовать разделение объектов по разделам. " _
+                       "Для настройки принадлежности объектов регионам " _
+                       "требуется принадлежность к группе 'editclassification' .",
+
+  usetargetmilestone => "Использовать поле 'Запланировано'",
+
+  useqacontact => "Использовать поле 'Приемка'",
+
+  usestatuswhiteboard => "Использовать поле 'Заметки'",
+
+  use_see_also => 
+    "Хотите использовать поле Ссылки?  Оно позволяет ссылаться на"
+    _ " $terms.bugs в других экземплярах ${terms.Bugzilla}.  Если поле будет отключено,"
+    _ " уже установленные связи $terms.bugs_gen по прежнему будут отображаться в виде гиперссылок"
+    _ " без возможности их удалить.",
+
+  defaultpriority => "Значение приоритета по умолчанию для регистрируемых ${terms.bugs_gen}.",
+
+  defaultseverity => "Значение серьезности по умолчанию для регистрируемых ${terms.bugs_gen}.",
+
+  defaultplatform => "Платформа, выбранная по умолчанию на странице " _
+                     "регистрации ${terms.bug_gen}.<br> " _
+                     "Значение можно оставить пустым: " _
+                     "при этом $terms.Bugzilla определит значение автоматически " _
+                     "по данным, сообщаемым веб-обозревателем.",
+
+  defaultopsys => "Операционная система, выбранная по умолчанию на странице " _
+                  "регистрации ${terms.bug_gen}.<br> " _
+                  "Значение можно оставить пустым: " _
+                  "при этом $terms.Bugzilla определит значение автоматически " _
+                  "по данным, сообщаемым веб-обозревателем." }
+%]

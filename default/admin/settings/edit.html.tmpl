@@ -1,0 +1,93 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# INTERFACE:
+  # settings:      a hash of hashes, keyed by setting name.
+  #                Each hash contains:
+  #                 is_enabled    - boolean
+  #                 default_value - string (global default for this setting)
+  #                 value         - string (user-defined preference)
+  #                 is_default    - boolean (true if user has no preference)
+  #%]
+
+[% PROCESS global/header.html.tmpl
+   title = "Настройки пользователей"
+ %]
+
+[% PROCESS "global/setting-descs.none.tmpl" %]
+
+<p>
+Редактирование настроек пользователей.
+</p>
+<p>
+Указанные значения по умолчанию действуют для всех пользователей, которые 
+не изменят их индивидуально, а также до входа в систему.
+</p>
+<p>
+Флажок 'Разрешено' указывает, могут ли пользователи изменять значение
+настройки индивидуально.<br>
+Если он установлен, пользователи увидят эти настройки на вкладке 'Общие параметры'
+и смогут их изменить.<br>
+Если он не установлен, пользователи не увидят эти настройки и значение по умолчанию
+распространяется на всех.
+</p>
+<hr>
+
+[% IF settings.size %]
+    <form name="adminsettingform" method="post" action="editsettings.cgi">
+      <table border="1" cellpadding="4">
+      <tr>
+        <th>Название настройки</th>
+        <th>Значение по умолчанию</th>
+        <th>Разрешено</th>
+      </tr>
+
+      [% FOREACH name = settings.keys %]
+          [% checkbox_name = name _ '-enabled' %]
+          <tr>
+            <td align="right">
+              [% setting_descs.$name OR name FILTER html %]
+            </td>
+            <td>
+              <select name="[% name FILTER html %]" id="[% name FILTER html %]">
+                [% FOREACH x = settings.${name}.legal_values %]
+                    <option value="[% x FILTER html %]"
+                      [% " selected=\"selected\"" IF x == settings.${name}.default_value %]>
+                      [% setting_descs.${x} OR x FILTER html %]
+                    </option>
+                [% END %]
+              </select>
+            </td>
+            <td align="center">
+              <input type="checkbox"
+                name="[% checkbox_name FILTER html %]"
+                id="[% checkbox_name FILTER html %]"
+                [% " checked=\"checked\"" IF settings.${name}.is_enabled %]>
+              <br>
+            </td>
+          </tr>
+      [% END %]
+      </table>
+
+    <input type="hidden" name="action" value="update">
+    <input type="hidden" name="token" value="[% token FILTER html %]">
+    <table>
+      <tr>
+        <td width="150"></td>
+        <td>
+          <input type="submit" id="update" value="Сохранить">
+        </td>
+      </tr>
+    </table>
+  
+  </form>
+[% ELSE %]
+  Редактируемые настройки отсутствуют.
+[% END %]
+
+[% PROCESS global/footer.html.tmpl %]

@@ -1,0 +1,27 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+[%
+   title = "Административные вопросы"
+   desc = "Настройка учетных записей"
+%]
+
+[% param_descs = {
+  allowbugdeletion => "При редактировании объектов и разделов разрешить удаление " _
+                      "связанных $terms.bugs_gen при удалении объекта (раздела). " _
+                      "Поскольку функция весьма опасная, ее необходимо включить " _
+                      "явным образом перед попыткой удаления .",
+
+  allowemailchange => "Разрешить изменение адреса электронной почты через страницу настроек. " _
+                      "Изменение адреса сопровождается проверкой обоих адресов, поэтому " _
+                      "включение функции не дает пользователю возможности ввести неверный адрес.",
+
+  allowuserdeletion => "Разрешить удаление учетных записей пользователей. " _
+                       "$terms.Bugzilla выдает предупреждения о потенциальных нарушениях " _
+                       "целостности базы данных, но в любом случае функция является опасной. " _
+                       "Поэтому ее требуется включать явным образом." }
+%]

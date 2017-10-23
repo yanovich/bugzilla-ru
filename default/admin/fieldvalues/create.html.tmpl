@@ -1,0 +1,94 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# INTERFACE:
+  # field: object; the field the value is being created for
+  #%]
+  
+[% PROCESS "global/field-descs.none.tmpl" %]
+
+[% title = BLOCK %]
+  Создание значения атрибута '[% field_descs.${field.name} FILTER html %]' ([% field.name FILTER html %])
+[% END %]
+[% PROCESS global/header.html.tmpl
+  title = title
+%]
+
+<p>
+  Добавление нового значения для атрибута 
+  '[% field_descs.${field.name} FILTER html %]'.
+</p>
+
+<form method="post" action="editvalues.cgi">
+  <table border="0" cellpadding="4" cellspacing="0">
+    <tr>
+      <th align="right"><label for="value">Значение:</label></th>
+      <td>
+        <input id="value" name="value" size="30"
+               maxlength="[% constants.MAX_FIELD_VALUE_SIZE FILTER none %]">
+      </td>
+    </tr>
+    <tr>
+      <th align="right"><label for="sortkey">Порядок сортировки:</label></th>
+      <td><input id="sortkey" name="sortkey" size="6" maxlength="6"></td>
+    </tr>
+    [% IF field.name == "bug_status" %]
+      <tr>
+        <th align="right"><label for="is_open">Тип состояния:</label></th>
+        <td>
+          <input type="radio" id="open_status" name="is_open" value="1" 
+                 checked="checked">
+          <label for="open_status">В работе</label><br>
+          <input type="radio" id="closed_status" name="is_open" value="0">
+          <label for="closed_status">Закрыта (требует указания решения)</label>
+        </td>
+      </tr>
+      <tr>
+        <th>&nbsp;</th>
+        <td>
+          Обратите внимание: Тип состояния может быть указан только при создании, 
+          изменение впоследствии запрещено.
+        </td>
+      </tr>
+    [% END %]
+    [% IF field.value_field %]
+      <tr>
+        <th align="right">
+          <label for="visibility_value_id">Условие отображения: атрибут
+           '[% field_descs.${field.value_field.name} FILTER html %]' принимает значения
+          </label>
+        </th>
+        <td>
+          <select name="visibility_value_id" id="visibility_value_id">
+            <option></option>
+            [% FOREACH field_value = field.value_field.legal_values %]
+              [% NEXT IF field_value.name == '' %]
+              <option value="[% field_value.id FILTER none %]">
+                [% IF field.value_field.name == 'component' %]
+                  [% field_value.product.name FILTER html %]:
+                [% END %]
+                [%- field_value.name FILTER html -%]
+              </option>
+            [% END %]
+          </select>
+          <small>(Чтобы значение отображалось непрерывно, оставьте без выбора.)</small>
+        </td>
+      </tr>
+    [% END %]
+  </table>
+  <input type="submit" id="create" value="Создать">
+  <input type="hidden" name="action" value="new">
+  <input type="hidden" name='field' value="[% field.name FILTER html %]">
+  <input type="hidden" name="token" value="[% token FILTER html %]">
+</form>
+
+[% PROCESS admin/fieldvalues/footer.html.tmpl
+    no_add_link = 1
+ %]
+
+[% PROCESS global/footer.html.tmpl %]

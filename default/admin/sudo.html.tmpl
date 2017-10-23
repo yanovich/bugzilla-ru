@@ -1,0 +1,91 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+  
+[% PROCESS global/variables.none.tmpl %]
+
+[% PROCESS global/header.html.tmpl
+   title = "Работа от имени другого пользователя"
+   style_urls = ['skins/standard/admin.css']
+   doc_section = "useradmin.html#impersonatingusers"
+ %]
+ 
+[% DEFAULT target_login = "" %]
+
+<p>
+  Функция [% terms.Bugzilla %] <b>sudo</b> позволяет работать в системе 
+  от имени другого пользователя.  В течение такой сессии доступны все функции 
+  в том виде, как они доступны другому пользователю.
+</p>
+
+<p class="areyoureallyreallysure">
+  Эта функция очень мощная, и её использовать следует с осторожностью.  
+  Действия пользователя протоколируются более подробно, чем обычно.
+</p>
+
+<form action="relogin.cgi" method="POST">
+  <p>
+    [% IF Param('usemenuforusers') %]
+      Выберите
+    [% ELSE %]
+      Введите регистрационное имя
+    [% END %]
+    <label for="target_login">пользователя, от имени которого начать сеанс</label>:
+    [% INCLUDE global/userselect.html.tmpl
+       id => "target_login"
+       name => "target_login"
+       value => target_login_default
+       accesskey => "u"
+       size => 30
+    %]
+  </p>
+  
+  [% IF !Param('usemenuforusers') %]
+    <p>
+      Имя пользователя должно быть введено точно. Поиск похожих не производится.
+    </p>
+  [% END %]
+  
+  <p>
+    Объясните <label for="reason">необходимость работы от имени другого 
+    пользователя</label>:<br>
+    <input type="text" id="reason" name="reason" size="80" maxlength="200"
+           value="[% reason_default FILTER html %]">
+  </p>
+  
+  <p>
+    Введенный здесь текст будет отправлен владельцу учетной записи по 
+    электронной почте.  Можно ничего не писать, но владелец будет 
+    оповещен в любом случае.
+  </p>
+  
+  [% IF user.authorizer.can_login %]
+    <p>
+      Введите <label for="Bugzilla_password">ваш пароль 
+      [% terms.Bugzilla %]</label>:
+      <input type="hidden" name="Bugzilla_login" value="[% user.login FILTER html %]">
+      <input type="password" id="Bugzilla_password" name="Bugzilla_password" size="20">
+      <input type="hidden" name="Bugzilla_login_token"
+             value="[% login_request_token FILTER html %]">
+      <br>
+      У этого требования есть две причины. Во-первых это снижает 
+      вероятность неавторизованного использования рабочего места 
+      уже вошедшего в систему пользователя.  Во-вторых это шанс ещё раз 
+      обдумать необходимость работы под чужой учетной записью.
+    </p>
+  [% END %]
+  
+  <p>
+    Нажмите на кнопку, чтобы начать сессию:
+    <input type="submit" id="begin_sudo" value="Начать сессию">
+    <input type="hidden" name="action" value="begin-sudo">
+    <input type="hidden" name="token" value="[% token FILTER html %]">
+  </p>
+
+</form>
+
+[% PROCESS global/footer.html.tmpl %]

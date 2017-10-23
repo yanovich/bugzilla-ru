@@ -1,0 +1,89 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# INTERFACE:
+  # abuser: identity of the user who created the (invalid?) token.
+  # token_action: the action the token was supposed to serve.
+  # expected_action: the action the user was going to do.
+  # script_name: the script generating this warning.
+  # alternate_script: the suggested script to redirect the user to
+  #                   if he declines submission.
+  #%]
+
+[% PROCESS "global/field-descs.none.tmpl" %]
+
+[% PROCESS global/header.html.tmpl title = "Подозрительные действия"
+                                   style_urls = ['skins/standard/global.css'] %]
+
+[% IF abuser %]
+  <div class="throw_error">
+    <p>При использовании административного интерфейса [% terms.Bugzilla %] генерируется 
+    случайный идентификатор, который хранится в экранной форме и базе данных.
+    Он используется для контроля того, что запрашиваемые изменения подготовлены при
+    помощи штатных форм [% terms.Bugzilla %]. В данный момент идентификатор некорректен, 
+    это означает что форма данных заполнена на неверной странице.
+    Используемый идентификатор:</p>
+
+    <table border="0" cellpadding="5" cellspacing="0">
+      [% IF token_action != expected_action %]
+        <tr>
+          <th>Запрошенное&nbsp;действие:</th>
+          <td>[% token_action FILTER html %]</td>
+        </tr>
+        <tr>
+          <th>&nbsp;</th>
+          <td>
+            Это действие не совпадает с ожидаемым ([% expected_action FILTER html %]).
+          </td>
+        </tr>
+      [% END %]
+
+      [% IF abuser != user.identity %]
+        <tr>
+          <th>Создан&nbsp;пользователем:</th>
+          <td>[% abuser FILTER html %]</td>
+        </tr>
+        <tr>
+          <th>&nbsp;</th>
+          <td>
+            Идентификатор создан не Вами.  Это может указывать на попытку несанкционированного
+            доступа от Вашего имени!
+          </td>
+        </tr>
+      [% END %]
+    </table>
+
+    <p>Обратитесь к администратору: [%+ Param("maintainer") FILTER html %].</p>
+  </div>
+[% ELSE %]
+  <div class="throw_error">
+    Изменение запрошено без использования штатных форм (отсутствует контрольный
+    идентификатор действия <em>[% expected_action FILTER html %]</em> при вызове 
+    скрипта '[% script_name FILTER html%]' ). Возможные причины:<br>
+    <ul>
+      <li>После успешных изменений нажата кнопка "Назад", как правило это
+      нехорошая идея, но безобидная.</li>
+      <li>Адрес страницы введен непосредственно в строке,
+      это также должно быть безопасно.</li>
+      <li>Вы выбрали ссылку, которая <b>неожиданно для Вас</b> направила сюда,
+      в этом случае действие может являться опасным.</li>
+    </ul>
+    Подтвердите сохранение предлагаемых изменений.  Помните, это может привести
+    к неожиданным и нежелательным результатам.
+  </div>
+
+  <form name="check" id="check" method="post" action="[% script_name FILTER html %]">
+    [% PROCESS "global/hidden-fields.html.tmpl"
+               exclude="^(Bugzilla_login|Bugzilla_password)$" %]
+    <input type="submit" id="confirm" value="Подтвердить изменения">
+  </form>
+  <p>или отказаться от изменений и перейти обратно к <a href="[% alternate_script FILTER html %]">
+    [%- alternate_script FILTER html %]</a>.</p>
+[% END %]
+
+[% PROCESS global/footer.html.tmpl %]

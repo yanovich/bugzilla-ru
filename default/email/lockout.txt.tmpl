@@ -1,0 +1,27 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[% PROCESS global/variables.none.tmpl %]
+
+From: [% Param('mailfrom') %]
+To: [% Param('maintainer') %]
+Subject: [[% terms.Bugzilla %]] Учётная запись заблокирована: [% locked_user.login %] ([% address %])
+X-Bugzilla-Type: admin
+
+С адреса [% address %] было произведено слишком много неудачных попыток входа (
+[%- constants.MAX_LOGIN_ATTEMPTS +%]) в
+учётную запись [% locked_user.login %]. 
+
+Попытки входа были произведены в следующее время:
+
+[% FOREACH login = attempts %]
+  [%+ login.login_time FILTER time %]
+[% END %]
+
+Этот IP сможет снова войти в эту учётную запись в
+[%+ unlock_at FILTER time %].

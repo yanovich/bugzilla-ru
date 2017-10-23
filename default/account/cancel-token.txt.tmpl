@@ -1,0 +1,91 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[% PROCESS global/variables.none.tmpl %]
+
+From: [% Param('mailfrom') %]
+To: [% emailaddress %]
+Subject: [% PROCESS subject %]
+X-Bugzilla-Type: admin
+
+Запрос был аннулирован с адреса [% remoteaddress %].
+
+Если вы этого не делали, это может быть чья-либо ошибка 
+либо намеренная попытка взлома вашей учетной записи.
+
+Ознакомьтесь с параметрами жетона и перешлите это сообщение
+по адресу [% Param('maintainer') %], если у вас есть подозрения.
+
+         Жетон: [% token %]
+    Тип жетона: [% tokentype %]
+  Пользователь: [% emailaddress %]
+   Дата выдачи: [% issuedate FILTER time("%Y-%m-%d %H:%M:%S %Z", timezone)%]
+        Данные: [% eventdata %]
+Причина отказа: [% PROCESS cancelactionmessage %]
+
+[% BLOCK subject %]
+  [% IF tokentype == 'new_account' %]
+    Отменен запрос на регистрацию пользователя
+  [% ELSIF tokentype == 'password' %]
+    Отменен запрос на изменение пароля
+  [% ELSIF tokentype == 'emailnew' OR tokentype == 'emailold' %]
+    Отменен запрос на изменение адреса электронной почты
+  [% ELSE %]
+    Отменен жетон типа [% tokentype %]
+  [% END %]
+[% END %]
+
+[% BLOCK cancelactionmessage %]
+  [% IF    cancelaction == 'account_exists' %]
+    Пользователь [% email %] уже существует.
+
+  [% ELSIF cancelaction == 'email_change_canceled' %]
+    Отменен запрос на изменение адреса электронной почты с
+    [% old_email %] на [% new_email %].
+
+  [% ELSIF cancelaction == 'email_change_canceled_reinstated' %]
+    Отменен запрос на изменение адреса электронной почты
+    на [% new_email %].  Восстановлены прежние значения.
+
+  [% ELSIF cancelaction == 'emailold_change_canceled' %]
+    Отменен запрос на изменение адреса электронной почты
+    на [% new_email %].  
+
+  [% ELSIF cancelaction == 'password_change_canceled' %]
+    Запрос на изменение пароля отменен пользователем.
+
+  [% ELSIF cancelaction == 'account_creation_canceled' %]
+    Создание учетной записи пользователя [% emailaddress %]
+    отменено.
+
+  [% ELSIF cancelaction == 'user_logged_in' %]
+    Запрос на изменение пароля отменен входом в систему.
+
+  [% ELSIF cancelaction == 'wrong_token_for_changing_passwd' %]
+    Попытка использовать жетон для смены пароля.
+
+  [% ELSIF cancelaction == 'wrong_token_for_cancelling_email_change' %]
+    Попытка использовать жетон для отмены изменения адреса.
+
+  [% ELSIF cancelaction == 'wrong_token_for_confirming_email_change' %]
+    Попытка использовать жетон для подтверждения изменения адреса.
+
+  [% ELSIF cancelaction == 'wrong_token_for_creating_account' %]
+    Попытка использовать жетон для создания учетной записи.
+
+  [% ELSE %]
+    [%# Give sensible error if the cancel-token function is used incorrectly.
+      #%]
+    Неправильное использование жетонов [% terms.Bugzilla %].  Передан
+    параметр '[% cancelaction %]'. Правильный метод: передать код 
+    события и описать его в файле <kbd>cancel-token.txt.tmpl</kbd>.
+
+    Если вы не разработчик [% terms.Bugzilla %], пожалуйста, перешлите
+    это сообщение администратору: [% Param('maintainer') %].
+  [% END %]
+[% END %]

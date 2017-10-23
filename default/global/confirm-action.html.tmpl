@@ -1,0 +1,55 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# INTERFACE:
+  # script_name: the script generating this warning.
+  # token: a valid token for the current action.
+  # reason: reason of the failure.
+  #%]
+
+[% PROCESS global/header.html.tmpl title = "Подозрительные действия"
+                                   style_urls = ['skins/standard/global.css'] %]
+[% PROCESS global/variables.none.tmpl %]
+
+<div class="throw_error">
+<!--reason=[%reason FILTER html %]-->
+  [% IF reason == "expired_token" %]
+    В сохранении изменений отказано, так как превышен лимит времени
+    ([% constants.MAX_TOKEN_AGE FILTER html %]
+    [% numeral(constants.MAX_TOKEN_AGE, "день", "дня", "дней") FILTER html %]) 
+    между отображением и сохранением [% script_name FILTER html %]. Страница 
+    отображалась слишком долго, или в форме случайно оказались старые данные.
+
+  [% ELSIF reason == "missing_token" %]
+    Попытка сохранения с нестандартной страницы.
+    Возможно, адрес введен напрямую в поле адреса веб-обозревателя, 
+    это должно быть безопасно. Другой причиной может быть переход по ссылке,
+    которая перенаправила сюда <b>без Вашего согласия</b>.
+
+  [% ELSIF reason == "invalid_token" %]
+    Попытка сохранить изменения в [% script_name FILTER html %] с недопустимым
+    идентификатором. Это может свидетельстовать о попытке использовать Ваши 
+    учетные данные для манипуляций с [% terms.Bugzilla %], например, предлагая
+    переход по ссылке, которая перенаправила сюда <b>без Вашего согласия</b>.
+  [% END %]
+  <p>
+    Вы уверены, что изменения следует сохранить?
+  </p>
+</div>
+
+<form name="check" id="check" method="post" action="[% script_name FILTER html %]">
+  [% PROCESS "global/hidden-fields.html.tmpl"
+             exclude="^(Bugzilla_login|Bugzilla_password|token)$" %]
+  <input type="hidden" name="token" value="[% token FILTER html %]">
+  <input type="submit" id="confirm" value="Да, подтверждаю изменения">
+</form>
+
+<p><a href="index.cgi">Нет, отказаться от изменений</a> (и перейти
+на главную страницу).</p>
+
+[% PROCESS global/footer.html.tmpl %]

@@ -1,0 +1,29 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[% PROCESS global/variables.none.tmpl %]
+[% INCLUDE global/header.html.tmpl title = "Разметка текста" %]
+
+<p>
+  Эта форма поможет в разметке текста по аналогии со стандартным 
+  комментарием [% terms.Bugzilla %]. Номера [% terms.bugs_gen %],
+  адреса URL и адреса электронной почты будут дополнены гиперссылками.
+</p>
+
+<form action="page.cgi" method="post">
+  [% INCLUDE global/textarea.html.tmpl
+    name    = 'text'
+    minrows = 20
+    cols    = constants.COMMENT_COLS
+  %]
+  <br>
+  <input type="hidden" name="id" value="linked.html">
+  <input type="submit" id="linkify" value="Выполнить разметку">
+</form>
+
+[% INCLUDE global/footer.html.tmpl %]

@@ -1,0 +1,52 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[% PROCESS "global/field-descs.none.tmpl" %]
+From: [% Param("mailfrom") %]
+To: [% email %][% Param("emailsuffix") %]
+Subject: Изменения в Вашем списке [% terms.bugs_gen %] [%+ terms.Bugzilla %].
+X-Bugzilla-Type: whine
+
+[Данное сообщение сгенерировано автоматически.]
+
+Вам назначены [% terms.bugs %] в системе отслеживания [% terms.bugs_gen %] [% terms.Bugzilla %] 
+([% urlbase %]), и они требуют Вашего внимания.
+
+Все эти [% terms.bugs %] находятся в состоянии '[% display_value("bug_status", "CONFIRMED") %]',
+и на них не было реакции в течение [% Param("whinedays") %] дней и более.
+Вам следует изучить их и принять первоначальное решение.
+
+Как правило, это один из трех вариантов:
+
+(1) Вы считаете, что решение очевидно (например, [% display_value("resolution", "INVALID") %]),
+    и закрываете вопрос немедленно.
+(2) Вы считаете, что [% terms.bug %] не принадлежит Вам и переадресуете ее другому
+    исполнителю. (Если неясно, кому следует ее переназначить, уточните значение
+    поля Раздел и используйте команду "Переадресовать ответственному за раздел".)
+(3) Вы считаете, что [% terms.bug %] принадлежит Вам, но не можете решить ее немедленно.
+    В этому случает возьмите на себя [% terms.bug %], установив его статус
+    в [% display_value("bug_status", "IN_PROGRESS") %].
+
+Используйте список всех [%+ terms.bugs_gen %] в состоянии [% display_value("bug_status", "CONFIRMED") %], 
+(при необходимости создайте закладку):
+
+ [% urlbase %]buglist.cgi?bug_status=CONFIRMED&assigned_to=[% email %]
+
+Также используйте форму поиска: 
+[%+ urlbase %]query.cgi
+
+Ниже приведены ссылки на все Ваши [%+ terms.bugs %] в состоянии '[% display_value("bug_status", "CONFIRMED") %]',
+на которые нет реакции в течение [% Param("whinedays") %] дней и более.
+
+Данное сообщение генерируется автоматически один раз в день до изменения состояния всех
+перечисленных [% terms.bugs_gen %]!
+
+[% FOREACH bug = bugs %]
+ [%+ bug.summary %]
+    -> [% urlbase %]show_bug.cgi?id=[% bug.id %]
+[% END %]

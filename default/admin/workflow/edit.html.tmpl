@@ -1,0 +1,101 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[% PROCESS "global/field-descs.none.tmpl" %]
+
+[% INCLUDE global/header.html.tmpl
+   title = "Переходы между состояниями $terms.bugs_gen"
+   style_urls = ['skins/standard/admin.css']
+%]
+
+<script type="text/javascript">
+<!--
+  function toggle_cell(cell) {
+    if (cell.checked)
+      cell.parentNode.className = "checkbox-cell checked";
+    else
+      cell.parentNode.className = "checkbox-cell";
+  }
+//-->
+</script>
+
+<p>
+  Настройка разрешенных переходов между состояниями [% terms.bugs_gen %].
+  Для совместимости с предыдущими версиями [% terms.Bugzilla %], повторное открытие [% terms.bug_gen %]
+  допускает только одно из состояний <b>[% display_value("bug_status", "UNCONFIRMED") FILTER html %]</b> или 
+  <b>[% display_value("bug_status", "REOPENED") FILTER html %]</b> (если соответствующие переходы разрешены).
+  Выбор зависит от того, была ли [% terms.bug %] подтверждена до принятия решения.  
+  Рекомендуется разрешить оба перехода и оставить выбор на усмотрение [% terms.Bugzilla %].
+</p>
+
+<form id="workflow_form" method="POST" action="editworkflow.cgi">
+<table>
+  <tr>
+    <th colspan="2">&nbsp;</th>
+    <th colspan="[% statuses.size FILTER html %]" class="title">В</th>
+  </tr>
+
+  <tr>
+    <th rowspan="[% statuses.size + 2 FILTER html %]" class="title">Из</th>
+    <th>&nbsp;</th>
+    [% FOREACH status = statuses %]
+      <th class="col-header[% status.is_open ? " open-status" : " closed-status" %]">
+        [% display_value("bug_status", status.name) FILTER html %]
+      </th>
+    [% END %]
+  </tr>
+
+  [%# This defines the entry point in the workflow %]
+  [% p = [{id => 0, name => "{Начальное}", is_open => 1}] %]
+  [% FOREACH status = p.merge(statuses) %]
+    <tr class="highlight">
+      <th align="right" class="[% status.is_open ? "open-status" : "closed-status" %]">
+        [% display_value("bug_status", status.name) FILTER html %]
+      </th>
+
+      [% FOREACH new_status = statuses %]
+        [% IF status.id != new_status.id %]
+          [% checked = workflow.${status.id}.${new_status.id}.defined ? 1 : 0 %]
+          [% mandatory = (status.id && new_status.name == Param("duplicate_or_move_bug_status")) ? 1 : 0 %]
+          <td align="center" class="checkbox-cell[% " checked" IF checked || mandatory %]"
+              title="[% status.name FILTER html %] -&gt; [% new_status.name FILTER html %]">
+            <input type="checkbox" name="w_[% status.id %]_[% new_status.id %]"
+                   id="w_[% status.id %]_[% new_status.id %]" onclick="toggle_cell(this)"
+                   [%+ "checked='checked'" IF checked || mandatory %]
+                   [%+ "disabled='disabled'" IF mandatory %]>
+          </td>
+        [% ELSE %]
+          <td class="checkbox-cell forbidden">&nbsp;</td>
+        [% END %]
+      [% END %]
+    </tr>
+  [% END %]
+</table>
+
+<p>
+  При принятии решения о дублировании [% terms.bug_gen %] или перемещении
+  в другую базу данных состояние [% terms.bug_gen %] автоматически устанавливается в
+  <b>[% display_value("bug_status", Param("duplicate_or_move_bug_status")) FILTER html %]</b>.  Переходы
+  в это состояние должны быть допустимы из любого, поэтому изменения для него
+  запрещены.<br>
+  Это может быть изменено на странице
+  <a href="editparams.cgi?section=bugchange#duplicate_or_move_bug_status">Настройки</a>
+  изменением параметра <i>duplicate_or_move_bug_status</i>.
+</p>
+
+<p align="center">
+  <input type="hidden" name="action" value="update">
+  <input type="hidden" name="token" value="[% token FILTER html %]">
+  <input type="submit" id="update_workflow" value="Сохранить изменения"> -
+  <a href="editworkflow.cgi">Отменить изменения</a> -
+  <a href="editworkflow.cgi?action=edit_comment">Правила для комментариев при изменении состояния</a>
+</p>
+
+</form>
+
+[% INCLUDE global/footer.html.tmpl %]

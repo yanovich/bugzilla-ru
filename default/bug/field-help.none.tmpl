@@ -1,0 +1,245 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# This file describes both bug fields and search fields.
+  # As calling this template once per label is very expensive,
+  # it is called only by Template.pm. %]
+
+[% RETURN UNLESS in_template_var %]
+
+[% PROCESS "global/variables.none.tmpl" %]
+
+[% vars.help_html = {
+
+# Note that all these keys here are in alphabetical order, though
+# search-specific fields are at the bottom.
+
+##############
+# Bug Fields #
+##############
+
+alias =>
+  "Короткое, уникальное имя, присвоенное $terms.abug призванное помочь в её
+   поиске и при проставлении на неё ссылок из других частей ${terms.Bugzilla}.",
+
+assigned_to =>
+  "Лицо, ответственное за работы по существу ${terms.bug_gen}.",
+
+blocked =>
+  "Для того, чтобы появилась возможность решить перечисленные в этом поле
+   ${terms.bugs}, вначале нужно решить эту ${terms.bug_acc}.",
+
+bug_file_loc =>
+  "$terms.Bugs может быть сопоставлен адрес интернета - например"
+  _ " ссылка на веб-сайт с проблемой.",
+
+bug_id =>
+  "Цифровой идентификатор $terms.bug_gen, уникальный в пределах этой"
+  _ " установки ${terms.Bugzilla}.",
+
+bug_severity =>
+  "Степень серьезности $terms.bug_gen или является ли она пожеланием.",
+
+bug_status =>
+  "$terms.Bug может быть в любом из определенных состояний.",
+
+cc =>
+  "Пользователи, которые могут не участвовать напрямую в исправлении этой
+   ${terms.bug_gen}, но которые заинтересованы в её решении.",
+
+classification => 
+  "$terms.Bugs относятся к Регионам, Объектам и"
+  _ " их Разделам. Регионы — высший уровень деления.",   
+
+component => 
+  "Разделы — категории второго уровня; каждая принадлежит к"
+  _ " определенному объекту. Выберите объект для сужения списка разделов.",
+
+creation_ts =>
+  "Когда была создана эта ${terms.bug}.",
+
+deadline =>
+  "Дата, к которой должна быть исправлена эта ${terms.bug}, введённая в формате
+   ГГГГ-ММ-ДД.",
+
+delta_ts =>
+  "Дата последнего обновления этой ${terms.bug_gen}.",
+
+dependson =>
+  "Для того, чтобы появилась возможность решить эту ${terms.bug_acc}, вначале
+   нужно решить перечисленные здесь ${terms.bugs}.",
+
+estimated_time =>
+  "Оценка количества времени, которое потребуется для решения
+   этой ${terms.bug_gen}.",
+   
+importance =>
+  "Важность ${terms.bug_gen} описана в качестве комбинации
+   её полей $vars.field_descs.priority и ${vars.field_descs.bug_severity}.",
+
+keywords =>
+   "К $terms.bugs_dat могут быть добавлены ключевые слова из определенного списка"
+   _ "  для облегчения их идентификации и группировки.",
+
+longdesc =>
+  "Пользователи $terms.Bugzilla добавляют к $terms.bugs_dat свои комментарии."
+  _ " Это поле для поиска по тексту этих комментариев.",
+
+op_sys =>
+  "Операционная система, к которой относится ${terms.bug}.",
+
+percentage_complete =>
+  "Насколько завершение решения этого $terms.bugs_acc близко к 100% — производится
+   путём сравнения значения '$vars.field_descs.work_time' с
+   значением '$${vars.field_descs.estimated_time}'.",
+
+priority =>
+  "Приоритет, назначенный $terms.bug_dat исполнителем.",
+
+# Note that this has extra text added below if useclassification is on.
+product =>
+  "$terms.Bugs разделены на категории по Объектам и их Разделам.",
+
+qa_contact =>
+  "Лицо, ответственное за подтверждение этой $terms.bug_gen, если она"
+  _ "  не подтверждена, и за верификацию исправления после того как $terms.bug"
+  _ " была исправлена.",
+
+remaining_time =>
+  "Количество часов работы, которое осталось провести для решения этой
+   $terms.bug_gen — вычисляется путём вычитания '$vars.field_descs.work_time' из
+   '${vars.field_descs.estimated_time}'.",
+
+rep_platform => 
+  "Аппаратная платформа, к которой относится ${terms.bug}.",
+
+reporter =>
+  "Лицо, которое создало эту ${terms.bug_acc}.",
+
+resolution =>
+  "Если $terms.bug в завершенном состоянии,"
+  _ " то $terms.bug_dat присвоено некоторое решение.",
+
+see_also =>
+  "Позволяют ссылаться на $terms.bugs в других системах.
+   Введите URL $terms.bug_gen в поле 'Добавить ссылки на ${terms.bugs}'
+   для указания того, что та $terms.bug имеет отношение к этой. Можно вводить
+   несколько адресов URL через запятую.
+
+   <p>Как правило это поле используется для ссылок на $terms.bugs в
+     <em>других</em> установках системы. Если $terms.bugs зарегистрированы
+     в этом экземпляре, лучше использовать поля '$vars.field_descs.dependson' и 
+     '$vars.field_descs.blocked'.</p>",
+
+short_desc =>
+  "Аннотация ${terms.bug_gen} — краткое описание"
+  _ " содержания ${terms.bug_gen}.",
+
+status_whiteboard =>
+  "Каждая $terms.bug имеет однострочное поле для"
+  _ " для добавления меток и информации о состоянии.",
+
+tag =>
+  "В отличие от ${vars.field_descs.keywords}, являющихся глобальными и видимыми
+   для всех пользователей, ${vars.field_descs.tag} являются персональными и
+   могут просматриваться и изменяться только их автором. Их редактирование
+   не отправит никаких уведомлений другим пользователям. Используйте их для
+   пометки и отслеживания ${terms.bugs_gen}.",
+
+target_milestone =>
+   "Поле $vars.field_descs.target_milestone определяет когда"
+   _ " исполнитель $terms.bug рассчитывает решить проблему.",
+
+version =>
+  "Поле версии определяет версию объекта,"
+  _ " к которой относится ${terms.bug}.",
+
+votes =>
+  "Для некоторых $terms.bugs_gen разрешено голосование."
+  _ " Возможен поиск $terms.bugs_gen с некоторым числом голосов.",
+
+work_time =>
+  "Полное количество времени, проведённое над решением этой $terms.bug_gen
+  на текущий момент.",
+
+##########################
+# Search-specific fields #
+##########################
+
+chfield =>
+  "Поиск по истории изменений — выберите поле"
+  _" изменения в котором надо найти.",
+
+# Duplicated to chfieldto below, also.
+chfieldfrom =>
+  "Укажите диапазон дат в формате ГГГГ-ММ-ДД (возможно добавление
+   времени в формате ЧЧ:ММ), или относительно текущей даты: например,
+   1h, 2d, 3w, 4m, 5y, что означает соответственно один час, два дня,
+   три недели, четыре месяца и пять лет; 0d — полночь, и
+   0h, 0w, 0m, 0y — начало текущего часа, недели, месяца и года.",
+
+chfieldvalue =>
+  "Значение, которое указанное поле получило в этот период.",
+
+content =>
+  "Это поле доступно в поисках, которые производят 'полнотекстовый' поиск
+   а-ля Google по полям '$vars.field_descs.short_desc' и '$vars.field_descs.longdesc'.",
+
+# Duplicated to email2 below, also.
+email1 =>
+  "С каждым $terms.bug_abl связаны пользователи в различных ролях. Возможен поиск"
+  _ "  по принадлежности $terms.bugs_gen пользователям в определенной роли.",
+
+} %]
+
+[% vars.help_html.email2 = vars.help_html.email1 %]
+[% vars.help_html.chfieldto = vars.help_html.chfieldfrom %]
+[% vars.help_html.deadlinefrom = vars.help_html.deadline %]
+[% vars.help_html.deadlineto = vars.help_html.deadline %]
+
+[% help_all_note = BLOCK %]
+  <strong>Примечание:</strong> При выборе при поиске опции "Любая"
+  будут найдены только те [% terms.bugs %] имеющие в этом поле реальное
+  слово "Любая".
+[% END %]
+[% FOREACH all_field = ['op_sys', 'rep_platform'] %]
+  [% vars.help_html.$all_field = vars.help_html.$all_field _ ' ' _ help_all_note %]
+[% END %]
+
+[% IF Param('useclassification') %]
+  [% vars.help_html.product = vars.help_html.product
+      _ " Для уточнения этого списка выберите классификацию." %]
+[% END %]
+
+[% FOREACH help_field = bug_fields.keys %]
+
+  [%# Add help for custom fields. %]
+  [% IF !vars.help_html.${help_field}.defined %]
+    [% IF bug_fields.${help_field}.long_desc %]
+      [% vars.help_html.${help_field} = bug_fields.${help_field}.long_desc %]
+    [% ELSE %]
+      [% SET field_type = bug_fields.${help_field}.type %]
+      [% field_type_desc = BLOCK -%]
+        [% field_types.$field_type FILTER html %]
+      [%- END %]
+      [% vars.help_html.${help_field} = 
+        "Настраиваемое поле $field_type_desc в этой установке"
+      _ " ${terms.Bugzilla}." %]
+    [% END %]
+  [% END %]
+
+  [%# Add help for the search types, for query.cgi. %]
+  [% type_desc = BLOCK %]
+    Тип [% vars.field_descs.${help_field} FILTER html %] поиска который вы 
+    хотите произвести.
+  [% END %]
+  [% SET type_name = help_field _ '_type' %]
+  [% vars.help_html.$type_name = type_desc %]
+[% END %]
+
+[% Hook.process("end") %]

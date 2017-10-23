@@ -1,0 +1,51 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# Remember to PROCESS rather than INCLUDE this template. %]
+
+[% PROCESS global/variables.none.tmpl %]
+
+[% setting_descs = { 
+   "comment_sort_order"               => "Порядок отображения комментариев при просмотре $terms.bug_gen",
+   "csv_colsepchar"                   => "Разделитель полей формата CSV",
+   "display_quips"                    => "Отображать цитаты в списках $terms.bugs_gen",
+   "zoom_textareas"                   => "Увеличивать текстовые поля при редактировании (требуется JavaScript)",
+   "newest_to_oldest"                 => "Новые вверху",
+   "newest_to_oldest_desc_first"      => "Новые вверху, после описания",
+   "off"                              => "Выкл",
+   "oldest_to_newest"                 => "Новые внизу",
+   "on"                               => "Вкл",
+   "post_bug_submit_action"           => "После редактирования $terms.bug_gen",
+   "next_bug"                         => "Перейти к следующей $terms.bug_dat в списке",
+   "same_bug"                         => "Вернуться к этой $terms_dat",
+   "standard"                         => "Классическая",
+   "skin"                             => "Тема оформления $terms.Bugzilla (skin)",
+   "nothing"                          => "Ничего",
+   "state_addselfcc"                  => "Автоматически добавлять мне подписку на изменяемые $terms.bugs",
+   "always"                           => "Всегда",
+   "never"                            => "Никогда",
+   "cc_unless_role"                   => "Только при отсутствии других ролей",
+   "lang"                             => "Язык сообщений электронной почты",
+   "quote_replies"                    => "Цитировать комментарий при ответе",
+   "quoted_reply"                     => "Цитировать комментарий полностью",
+   "simple_reply"                     => "Только ссылка на номер комментария",
+   "comment_box_position"             => "Позиция блока дополнительных комментариев",
+   "before_comments"                  => "До других комментариев",
+   "after_comments"                   => "После других комментариев",   
+   "timezone"                         => "Часовой пояс отображения даты и времени",
+   "local"                            => "Совпадает с настройкой сервера",
+   "quicksearch_fulltext"             => "Включать комментарии при выполнении быстрого поиска (медленнее)",
+   "email_format"                     => "Предпочтительный формат почтовых сообщений",
+   "html"                             => "HTML",
+   "text_only"                        => "Только текст",
+   "requestee_cc"                     => "Автоматически добавлять меня в список подписки $terms.bugs_gen, патчи для которых меня просят проверить",
+   "bugmail_new_prefix"               => "Добавлять 'Новая:' в тему письма, отправляемого при регистрации новой $terms.bug_gen",
+                   } 
+%]
+
+[% Hook.process('settings') %]

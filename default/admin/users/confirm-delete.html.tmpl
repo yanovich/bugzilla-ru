@@ -1,0 +1,363 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# INTERFACE:
+  #
+  # listselectionvalues:      selection values to recreate the current user
+  #                           list.
+  # editusers:                is viewing user member of editusers?
+  # otheruser:                Bugzilla::User object of the viewed user.
+  # reporter:                 number of bugs reported by the user
+  # assignee_or_qa:           number of bugs the user is either the assignee
+  #                           or the QA contact
+  # bugs_activity:            number of bugs the viewed user has activity
+  #                           entries on
+  # cc                        number of bugs the viewed user is cc list member
+  #                           of
+  # flags.requestee:          number of flags the viewed user is being asked for
+  # flags.setter:             number of flags the viewed user has set
+  # longdescs:                number of bug comments the viewed user has written
+  # namedqueries:             number of named queries the user has created
+  # namedquery_group_map:     number of named queries the user has shared
+  # profiles_activity:        number of changes made to other users' profiles
+  # series:                   number of series the viewed user has created
+  # watch.watched:            number of users the viewed user is being watched
+  #                           by
+  # watch.watcher:            number of users the viewed user is watching
+  # whine_events:             number of whine events the viewed user has created
+  # whine_schedules:          number of whine schedules the viewed user has
+  #                           created
+  #%]
+
+[% title = BLOCK %]Подтвердите удаление [% otheruser.login FILTER html %][% END %]
+
+[% PROCESS global/header.html.tmpl
+  title = title
+  style_urls = ['skins/standard/admin.css',
+                'skins/standard/editusers.css']
+  doc_section = "useradmin.html#user-account-deletion"
+%]
+
+[% PROCESS admin/users/listselectvars.html.tmpl
+  listselectionvalues = listselectionvalues
+%]
+
+<table class="main">
+  <tr>
+    <th>Учетная запись:</th>
+    <td>[% otheruser.login FILTER html %]</td>
+  </tr>
+  <tr>
+    <th>Полное имя:</th>
+    <td>[% otheruser.name FILTER html %]</td>
+  </tr>
+  <tr>
+    <th>Группы:</th>
+    <td>
+      [% IF otheruser.groups.size %]
+        <ul>
+          [% FOREACH group = otheruser.groups %]
+            <li>[% group.name FILTER html %]</li>
+          [% END %]
+        </ul>
+      [% ELSE %]
+        нет
+      [% END %]
+    </td>
+  </tr>
+  [% IF otheruser.product_responsibilities.size %]
+    <tr>
+      <th>Ответственность по объектам:</th>
+      <td>
+        [% PROCESS admin/users/responsibilities.html.tmpl otheruser = otheruser %]
+      </td>
+    </tr>
+  [% END %]
+</table>
+
+[% IF otheruser.product_responsibilities.size %]
+  <p>
+    Пользователь [%+ otheruser.login FILTER html %] не может быть
+    удален поскольку отвечает за один или несколько объектов.
+  </p>
+  <p>
+    [% IF user.in_group("editcomponents", component.product_id) %]
+      Вы можете изменить параметры объектов (см. ссылки выше),
+    [% ELSE %]
+      Вы можете только
+    [% END %]
+[% ELSE %]
+  [% accept_deletion = 1 %]
+
+  [% IF attachments || reporter || bugs_activity || flags.setter || longdescs || profiles_activity %]
+    <div class="criticalmessages">
+      <p>Выполнение перечисленных ниже операций <b>не рекомендуется</b>,
+      так как приведет к нарушению целостности базы данных!</p>
+
+      <ul>
+        [% IF attachments %]
+          <li>
+            Пользователь [% otheruser.login FILTER html %]
+            <a href="buglist.cgi?field0-0-0=attachments.submitter&type0-0-0=equals&value0-0-0=
+               [%- otheruser.login FILTER uri %]">создал
+               [%+ attachments %][%+ numeral(attachments,
+                  "приложение","приложения","приложений")
+                  FILTER html -%]</a> к [% terms.bugs_dat %].
+            Удаление пользователя приведет к нарушению целостности базы
+            данных и пропаданию этих приложений.
+          </li>
+        [% END %]
+        [% IF reporter %]
+          <li>
+            Пользователем [% otheruser.login FILTER html %]
+            <a href="buglist.cgi?emailreporter1=1&amp;emailtype1=exact&amp;email1=
+               [%- otheruser.login FILTER uri %]">
+               [% numeral(reporter,
+                  "зарегистрирована ${reporter} ${terms.bug}",
+                  "зарегистрировано ${reporter} ${terms.bug_gen}",
+                  "зарегистрировано ${reporter} ${terms.bugs_gen}")
+                  FILTER html -%].
+            Удаление пользователя приведет к нарушению целостности базы
+            данных и пропаданию этих [% terms.bugs_gen %].
+          </li>
+        [% END %]
+        [% IF bugs_activity %]
+          <li>
+            Пользователем [% otheruser.login FILTER html %] выполнено 
+            [% bugs_activity FILTER none %]
+            [% numeral(bugs_activity, "изменение", "изменения", "изменений") FILTER html %] 
+            в состоянии [% terms.bugs_gen %].
+            Удаление пользователя приведет к нарушению целостности базы
+            данных и пропаданию записей в историях изменений [% terms.bugs_gen %].
+          </li>
+        [% END %]
+        [% IF flags.setter %]
+          <li>
+            Пользователь [% otheruser.login FILTER html %] 
+            <a href="buglist.cgi?field0-0-0=setters.login_name&amp;type0-0-0=equals&amp;value0-0-0=
+               [%- otheruser.login FILTER uri %]">
+            выполнил или запросил</a> [% flags.setter %]
+            [% numeral(flags.setter,
+               "согласование", "согласования", "согласований") FILTER html -%].
+            Удаление пользователя приведет к нарушению целостности базы
+            данных и некорректному отображению согласований.
+          </li>
+        [% END %]
+        [% IF longdescs %]
+          <li>
+            Пользователь [% otheruser.login FILTER html %] участвовал в 
+            <a href="buglist.cgi?emaillongdesc1=1&amp;emailtype1=exact&amp;email1=
+               [%- otheruser.login FILTER uri %]">переписке
+            по [% terms.bugs_abl %] [% longdescs %]
+            [% numeral(longdescs, "раз", "раза", "раз") FILTER html -%].</a>.
+            Удаление пользователя приведет к нарушению целостности базы
+            данных и комментарии этого пользователя отображаться не будут.
+          </li>
+        [% END %]
+        [% IF profiles_activity %]
+          <li>
+            Пользователь [% otheruser.login FILTER html %] выполнил 
+            [% profiles_activity FILTER none %]
+            [% numeral(profiles_activity, 
+               "изменение", "изменения", "изменений") FILTER html %]
+            в настройках других пользователей.
+            Удаление пользователя приведет к нарушению целостности базы
+            данных в части отслеживания действий пользователей.
+          </li>
+        [% END %]
+      </ul>
+    </div>
+    [% accept_deletion = 0 %]
+  [% END %]
+
+  [% IF assignee_or_qa || cc || component_cc || email_setting || flags.requestee ||
+        namedqueries || profile_setting || quips || series || watch.watched ||
+        watch.watcher || whine_events || whine_schedules || otheruser.has_audit_entries ||
+        other_safe %]
+    <div class="warningmessages">
+      <p>Выполнение перечисленных ниже операций <b>безопасно</b>,
+      и не приведет к нарушению целостности базы данных.</p>
+
+      <ul>
+        [% IF assignee_or_qa %]
+          <li>
+            Пользователь [% otheruser.login FILTER html %]
+            <a href="buglist.cgi?emailassigned_to1=1&amp;emailqa_contact1=1&amp;emailtype1=exact&amp;email1=
+               [%- otheruser.login FILTER uri %]">является 
+            исполнителем или ответственным за приемку [%+ assignee_or_qa %] 
+            [% numeral(assignee_or_qa,
+               "${terms.bug_gen}", "${terms.bugs_gen}", "${terms.bugs_gen}")
+               FILTER html -%]</a>.
+            Удаление пользователя приведет к передаче [% terms.bugs_gen %] 
+            ответственным соответствующих объектов.
+          </li>
+        [% END %]
+        [% IF cc %]
+          <li>
+            Пользователь [% otheruser.login FILTER html %]
+            <a href="buglist.cgi?emailcc1=1&amp;emailtype1=exact&amp;email1=
+               [%- otheruser.login FILTER uri %]">подписан
+            на [% cc %] 
+            [% numeral(cc,
+               "${terms.bug_acc}", "${terms.bugs_acc}", "${terms.bugs_gen}")
+               FILTER html -%]</a>.
+            Удаление пользователя приведет к аннулированию его подписки.
+          </li>
+        [% END %]
+        [% IF component_cc %]
+          <li>
+            Пользователь [% otheruser.login FILTER html %] подписан на все
+            [% terms.bugs %] [%+ component_cc %]
+            [% numeral(component_cc,
+               "раздела", "разделов", "разделов")
+               FILTER html -%].
+            Удаление пользователя приведет к аннулированию его подписки.
+          </li>
+        [% END %]
+        [% IF email_setting %]
+          <li>
+            Вместе с пользователем будут удалены его настройки 
+            электронной почты.
+          </li>
+        [% END %]
+        [% IF flags.requestee %]
+          <li>
+            У пользователя [% otheruser.login FILTER html %] 
+            <a href="buglist.cgi?field0-0-0=requestees.login_name&amp;type0-0-0=equals&amp;value0-0-0=
+               [%- otheruser.login FILTER uri %]">запрошено
+            [% flags.requestee %]
+            [% numeral(flags.requestee,
+               "согласование", "согласования", "согласований") 
+               FILTER html -%]</a>.
+            Удаление пользователя приведет к изменению запроса согласования на безадресный.
+          </li>
+        [% END %]
+        [% IF namedqueries %]
+          <li>
+            Пользователь [% otheruser.login FILTER html %]
+            имеет [%+ namedqueries FILTER html %]
+           [% numeral(namedqueries,
+             "сохраненное условие", 
+             "сохраненных условия", 
+             "сохраненных условий") 
+             FILTER html %]
+           отбора.  Все они будут удалены.
+            [% IF namedquery_group_map %]
+              Среди условий отбора [%+ namedquery_group_map FILTER html %]
+              [% numeral(namedquery_group_map,
+                 "опубликовано", "опубликованы", "опубликованы") 
+                 FILTER html %]
+              для других пользователей.  Пользователи потеряют возможность
+              пользоваться этими условиями отбора.
+            [% END %]
+          </li>
+        [% END %]
+        [% IF profile_setting %]
+          <li>
+            Вместе с пользователем будут удалены его настройки 
+            параметров.
+          </li>
+        [% END %]
+        [% IF series %]
+          <li>
+            Пользователь [% otheruser.login FILTER html %] создал [%+ series %]
+            [% numeral(namedquery_group_map,
+               "серию", "серии", "серий") FILTER html %] данных.
+            При удалении пользователя все они будут удалены.
+          </li>
+        [% END %]
+        [% IF quips %]
+          <li>
+            Пользователь [% otheruser.login FILTER html %] опубликовал
+            [%+ quips %] [% numeral(quips,
+               "цитату", "цитаты", "цитат") FILTER html -%].
+            При удалении пользователя цитата сохранится, но без указания
+            автора.
+          </li>
+        [% END %]
+        [% IF watch.watched || watch.watcher %]
+          <li>
+            [% IF watch.watched %]
+              Оповещения пользователя [% otheruser.login FILTER html %] дублируются другими.
+            [% END %]
+            [% IF watch.watcher %]
+              Пользователь [% otheruser.login FILTER html %] дублирует оповещения других пользователей.
+            [% END %].
+            При удалении пользователя дублирование будет прекращено.
+          </li>
+        [% END %]
+        [% IF whine_events %]
+          <li>
+            Пользователь [% otheruser.login FILTER html %]
+            настроил рассылку [%+ whine_events %]
+            [% numeral(whine_events,
+               "оповещения", "оповещений", "оповещений") FILTER html -%].
+            При удалении пользователя [% numeral(whine_events,
+              "это оповещение будет удалено", 
+              "эти оповещения будут удалены", 
+              "эти оповещения будут удалены") FILTER html -%].
+          </li>
+        [% END %]
+        [% IF whine_schedules %]
+          <li>
+            Пользователь [% otheruser.login FILTER html %]
+            является получателем [%+ whine_schedules %]
+            [% numeral(whine_schedules,
+               "оповещения", "оповещений", "оповещений") FILTER html -%].
+            При удалении пользователя расписания рассылки будут удалены, 
+            но настройки оповещений сохранятся.
+          </li>
+        [% END %]
+        [% IF otheruser.has_audit_entries %]
+          <li>
+            Пользователь выполнял административные функции, 
+            журнал аудита которых вёлся в базе данных.
+            Если вы удалите этого пользователя, его записи журнала аудита
+            больше не удастся идентифицировать.
+          </li>
+        [% END %]        
+        [% Hook.process('warn_safe') %]
+      </ul>
+    </div>
+
+    [% IF accept_deletion %]
+      <p class="areyoureallyreallysure">
+        Пожалуйста примите к сведению перечисленные последствия удаления пользователя.
+      </p>
+      <p>Подтвердите удаление пользователя:</p>
+
+      <form method="post" action="editusers.cgi">
+        <p>
+          <input type="submit" id="delete" value="Да, удалить"/>
+          <input type="hidden" name="action" value="delete" />
+          <input type="hidden" name="userid" value="[% otheruser.id %]" />
+          <input type="hidden" name="token" value="[% token FILTER html %]">
+          [% INCLUDE listselectionhiddenfields %]
+        </p>
+      </form>
+      <p>Если вы не хотите удалять пользователя, вы можете
+    [% ELSE %]
+      <p><b>Удаление пользователя невозможно</b> из-за описанных выше зависимостей. Вы можете
+    [% END %]
+
+  [% END %]
+[% END %]
+
+  <a href="editusers.cgi?action=edit&amp;userid=[% otheruser.id %]
+           [% INCLUDE listselectionurlparams %]">отредактировать его</a>,
+  вернуться 
+ <a href="editusers.cgi?action=list[% INCLUDE listselectionurlparams %]">к
+  списку пользователей</a>,
+  [% IF editusers %]
+    <a href="editusers.cgi?action=add[% INCLUDE listselectionurlparams %]">создать
+    пользователя</a>,
+  [% END %]
+  или <a href="editusers.cgi">выполнить поиск пользователей</a>.
+</p>
+
+[% PROCESS global/footer.html.tmpl %]

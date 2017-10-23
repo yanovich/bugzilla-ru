@@ -1,0 +1,36 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+[%
+   title = "Диаграммы зависимостей"
+   desc = "Настройки построителя диаграмм зависимостей"
+%]
+
+[% param_descs = {
+  webdotbase => "Возможно построение ориентированных графов зависимостей ${terms.bugs_gen}. 
+                 Возможные значения параметра:
+                 <ul>
+                   <li>
+                     Полный путь до утилиты 'dot' (из пакета
+                     <a href=\"http://www.graphviz.org\">GraphViz</a>) для локального
+                     построения диаграмм.
+                   </li>
+                   <li>
+                     Ссылка URL существующей установки 
+                     <a href=\"http://www.research.att.com/~north/cgi-bin/webdot.cgi\">пакета
+                     webdot</a> для удаленного построения.
+                   </li>
+                   <li>
+                     Пустое значение отключает возможности построения диаграмм.
+                   </li>
+                 </ul>
+                 Значение по умолчанию: сервер webdot в открытом доступе. Если вы измените
+                 это значение, убедитесь, что сервер имеет доступ по чтению к файлам в каталоге 
+                 webdot. В Apache это достигается редактированием файла .htaccess,
+                 для других реализаций сервера HTTP механизмы другие. Для перегенерации 
+                 удалённого файла .htaccess запустите <kbd>checksetup.pl</kbd>."}
+%]

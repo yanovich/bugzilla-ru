@@ -1,0 +1,142 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# INTERFACE:
+  # product: Bugzilla::Product object; The product
+  #
+  # (classification fields available if Param('useclassification') is enabled:)
+  #
+  # classification: Bugzilla::Classification object; The classification 
+  #                                                  the product is in
+  #%]
+
+[% title = BLOCK %]Изменение объекта '[% product.name FILTER html %]'[% END %]
+
+[% PROCESS global/header.html.tmpl
+  title = title
+  style_urls = ['skins/standard/admin.css']
+  javascript_urls = ['js/util.js']
+%]
+
+[% group_control = {${constants.CONTROLMAPNA}        => 'Запрещено',
+                    ${constants.CONTROLMAPSHOWN}     => 'Разрешено',
+                    ${constants.CONTROLMAPDEFAULT}   => 'Включено',
+                    ${constants.CONTROLMAPMANDATORY} => 'Обязательно'}
+ %]
+
+<form method="post" action="editproducts.cgi">
+  <table border="0" cellpadding="4" cellspacing="0">
+
+    [% PROCESS "admin/products/edit-common.html.tmpl" %]
+
+    <tr>
+      <th align="right" valign="top">
+        <a href="editcomponents.cgi?product=[% product.name FILTER uri %]">
+        Изменить разделы:
+        </a>
+      </th>
+      <td>
+        [% IF product.components.size -%]
+          [% FOREACH component = product.components %]
+            <a href="editcomponents.cgi?action=edit&product=
+            [%- product.name FILTER uri %]&component=
+            [%- component.name FILTER uri %]">[% component.name FILTER html %]</a>:&nbsp;
+            [% IF component.description %]
+              [% component.description FILTER html_light %]
+            [% ELSE %]
+              <font color="red">описание отсутствует</font>
+            [% END %]
+            <br>
+          [% END %]
+        [% ELSE %]
+          <font color="red">отсутствуют</font>
+        [% END %]
+      </td>
+    </tr>
+    <tr>
+      <th align="right" valign="top">
+        <a href="editversions.cgi?product=[% product.name FILTER uri %]">Изменить
+версии:</a>
+      </th>
+      <td>
+        [%- IF product.versions.size -%]
+          [% FOREACH v = product.versions %]
+            [% v.name FILTER html %]
+            <br>
+          [% END %]
+        [% ELSE %]
+          <font color="red">отсутствуют</font>
+        [% END %]
+      </td>
+    </tr>
+    [% IF Param('usetargetmilestone') %]
+      <tr>
+        <th align="right" valign="top">
+          <a href="editmilestones.cgi?product=[% product.name FILTER uri %]">
+          Изменить планы:</a>
+        </th>
+        <td>
+          [%- IF product.milestones.size -%]
+            [%- FOREACH m = product.milestones -%]
+              [% m.name FILTER html %]
+            <br>
+            [% END %]
+          [% ELSE %]
+            <font color="red">отсутствуют</font>
+          [% END %]
+        </td>
+      </tr>
+    [% END %]
+    <tr>
+      <th align="right" valign="top">
+        <a href="editproducts.cgi?action=editgroupcontrols&product=
+          [%- product.name FILTER uri %]">
+          Права доступа по группам:
+        </a>
+      </th>
+      <td>
+        [% IF product.group_controls.size %]
+          [% FOREACH g = product.group_controls.values.sort("name") %]
+            <b>[% g.group.name FILTER html %]:</b>&nbsp;
+            [% IF g.group.isactive %]
+              [% group_control.${g.membercontrol} FILTER html %]/
+              [% group_control.${g.othercontrol} FILTER html %]
+              [% IF g.entry %], Создание[% END %]
+              [% IF g.canedit %], Редакторы[% END %]
+              [% IF g.editcomponents %], Разделы[% END %]
+              [% IF g.canconfirm %], Подтверждение[% END %]
+              [% IF g.editbugs %], Редактировать любые ошибки[% END %]
+            [% ELSE %]
+              НЕАКТИВНА
+            [% END %]
+            <br>
+          [% END %]
+        [% ELSE %]
+          отсутствуют
+        [% END %]
+      </td>
+    </tr>
+    <tr>
+      <th align="right">[% terms.Bugs_gen %]:</th>
+      <td><a href="buglist.cgi?product=[% product.name FILTER uri %]">
+            [% product.bug_count FILTER html %]</a></td>
+    </tr>
+  </table>
+  
+  <input type="hidden" name="product_old_name" 
+        value="[% product.name FILTER html %]">
+  <input type="hidden" name="action" value="update">
+  <input type="hidden" name="token" value="[% token FILTER html %]">
+  <input type="submit" id="update-product" value="Сохранить изменения">
+</form>
+  
+[% PROCESS "admin/products/footer.html.tmpl"
+   no_add_product_link = 1 
+   no_edit_product_link = 1 %]
+
+[% PROCESS global/footer.html.tmpl %]

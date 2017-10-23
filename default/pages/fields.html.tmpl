@@ -1,0 +1,226 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[% PROCESS "global/field-descs.none.tmpl" %]
+[% PROCESS global/header.html.tmpl 
+  title = "Поля $terms.bugs_gen" 
+  style_urls = ['skins/standard/page.css']
+%]
+
+<p>На этой странице описаны различные поля, которые вы видите
+ в [% terms.bug_dat %].</p>
+
+<table class="field_value_explanation">
+  <thead>
+  <tr>
+    <td id="bug_status">
+      <h2>[% field_descs.bug_status FILTER upper FILTER html %]</h2>
+    </td>
+
+    <td id="resolution">
+      <h2>[% field_descs.resolution FILTER upper FILTER html %]</h2>
+    </td>
+  </tr>
+
+  <tr>
+    <td>Поле [% field_descs.bug_status FILTER html %] указывает текущее
+    состояние [% terms.bug_gen %]. Переходы между состояниями подчиняются 
+     определенным правилам.</td>
+
+    <td>Поле [% field_descs.resolution FILTER html %] показывает что именно
+    произошло с этой [%+ terms.bug_abl %].</td>
+  </tr>
+  </thead>
+  
+  <tbody>
+  <tr class="header_row">
+    <td colspan="2">Открытые [% terms.Bugs %]</td>
+  </tr>
+  <tr>
+    <td>
+      <dl>
+        <dt class="unconfirmed">
+          [% display_value("bug_status", "UNCONFIRMED") FILTER html %]
+        </dt>
+        <dd class="unconfirmed">
+          Эта [% terms.bug %] недавно зарегистрирована в базе данных. 
+          Никто не подтвердил, что проблема действительно имеет место. 
+          Пользователи с правом "canconfirm" могут подтвердить [% terms.bug_acc %] 
+          и изменить её состояние на
+          <b>[% display_value("bug_status", "CONFIRMED") FILTER html %]</b>.
+          Также ситуация, связанная с этой [% terms.bug_abl %], может быть 
+          решена немедленно и [% terms.bug %] может перейти в состояние 
+          <b>[% display_value("bug_status", "RESOLVED") FILTER html %]</b>.
+        </dd>
+
+        <dt class="confirmed">
+          [% display_value("bug_status", "CONFIRMED") FILTER html %]
+        </dt>
+        <dd class="confirmed">
+         Эта [% terms.bug %] была недавно добавлена к списку и подтверждена. 
+         [%+ terms.Bugs %] в таком состоянии переходят в состояние  
+         <b>[% display_value("bug_status", "IN_PROGRESS") FILTER html %]</b>,
+         когда кто-либо над ней работает, или могут быть решены и перейти в
+         состояние <b>[% display_value("bug_status", "RESOLVED") FILTER html %]</b>.
+        </dd>
+
+        <dt class="in_progress">
+          [% display_value("bug_status", "IN_PROGRESS") FILTER html %]
+        </dt>
+        <dd class="in_progress">
+          Эта [% terms.bug %] ещё не решена, но уже передана конкретному 
+          исполнителю который работает над [% terms.bug_abl %]. Из этого состояния
+          [%+ terms.bug %] может быть передана другому исполнителю и перейти
+          в состояние
+          <b>[% display_value("bug_status", "CONFIRMED") FILTER html %]</b>, 
+          или может быть решена и получит состояние
+          <b>[% display_value("bug_status", "RESOLVED") FILTER html %]</b>.
+        </dd>
+        
+        [% Hook.process('open-status') %]        
+      </dl>
+    </td>
+
+    <td>
+         Никакого решения пока нет. У всех [% terms.bugs_gen %] которые 
+         находятся в одном из "открытых" состояний, поле решения не установлено.
+    </td>
+  </tr>
+
+  <tr class="header_row">
+    <td colspan="2">Закрытые [% terms.Bugs %]</td>
+  </tr>
+  <tr>
+    <td>
+      <dl>
+        <dt class="resolved">
+          [% display_value("bug_status", "RESOLVED") FILTER html %]
+        </dt>
+        <dd class="resolved">
+          Решение было произведено и ожидает проверки приемки.
+          Отсюда [% terms.bugs %] могут быть либо открыты вновь и получить
+          один из открытых статусов, либо проверены приемкой и помечены как
+          <b>[% display_value("bug_status", "VERIFIED") FILTER html %]</b>.
+        </dd>
+
+        <dt class="verified">
+          [% display_value("bug_status", "VERIFIED") FILTER html %]
+        </dt>
+        <dd class="verified">
+          Принятое решение подтверждено ответственным за приемку.
+          Это окончательное состояние для [% terms.bugs %]. 
+        </dd>
+        
+        [% Hook.process('closed-status') %]        
+      </dl>
+    </td>
+
+    <td>
+      <dl>
+        <dt class="fixed">
+          [% display_value("resolution", "FIXED") FILTER html %]
+        </dt>
+        <dd class="fixed">
+          Необходимые изменения внесены и протестированы.
+        </dd>
+
+        <dt class="invalid">
+          [% display_value("resolution", "INVALID") FILTER html %]
+        </dt>
+        <dd class="invalid">
+          [% terms.Bug %] по описанию не является проблемой или оформлена неверно.
+        </dd>
+
+        <dt class="wontfix">
+          [% display_value("resolution", "WONTFIX") FILTER html %]
+        </dt>
+        <dd class="wontfix">
+          Описываемая проблема признана, но в её исправлении отказано.
+        </dd>
+
+        <dt class="duplicate">
+         [% display_value("resolution", "DUPLICATE") FILTER html %]
+        </dt>
+        <dd class="duplicate">
+          Повторная регистрация существующей [% terms.bug_gen %].
+          Когда [% terms.abug %] помечается как
+          <b>[% display_value("resolution", "DUPLICATE") FILTER html %]</b>,
+          то рядом с решением вы увидите номер существующей [% terms.bug_gen %].
+        </dd>
+
+        <dt class="worksforme">
+          [% display_value("resolution", "WORKSFORME") FILTER html %]
+        </dt>
+        <dd class="worksforme">
+          Все попытки воспроизвести проблему были безуспешны,
+          анализ не позволил понять возможные причины появления 
+          описанной проблемы. При получении дополнительной информации, 
+          [% terms.bug_acc %] следует открыть повторно, до тех пор работы над 
+          [% terms.bug_abl %] прекращены.
+        </dd>
+        
+        [% Hook.process('resolution') %]        
+      </dl>
+    </td>
+  </tr>
+  </tbody>  
+</table>
+
+<h2>Другие поля</h2>
+
+[% SET field_help_map = {} %]
+[% FOREACH field = bug_fields.keys %]
+  [% SET field_desc = field_descs.$field %]
+  [% field_help_map.$field_desc = { help  => help_html.$field, 
+                                    field => field } %]
+[% END %]
+
+[%# This field is not a real one, but its label is visible in bugs. %]
+
+[% field_help_map.Importance = { help  => help_html.importance,
+                                 field => "важность" } %]
+
+[%# These are fields that don't need to be documented, either because
+  # they have docs somewhere else in the UI, or they don't show up on bugs. 
+  # %]
+[% SET skip_fields = [ 
+  'days_elapsed', 
+  'everconfirmed',
+  'reporter_accessible',
+  'cclist_accessible',
+  'bug_group',
+  'commenter',
+  'owner_idle_time',
+  'bug_status',
+  'resolution',
+] %]
+
+<dl class="field_descriptions">
+[% FOREACH field_desc = field_help_map.keys.sort %]
+  [% SET field = field_help_map.${field_desc}.field %]
+  [% SET field_object = bug_fields.$field %]
+
+  [% NEXT IF field_object.obsolete %]
+  [% NEXT IF !user.is_timetracker AND field_object.is_timetracking %]
+
+  [% NEXT IF field == 'status_whiteboard' AND !Param('usestatuswhiteboard') %]
+  [% NEXT IF field == 'target_milestone' AND !Param('usetargetmilestone') %]
+
+  [%# For now we don't have help for attachment fields and so on. %]
+  [% NEXT IF field.match('\.') %]
+
+  [% NEXT IF skip_fields.contains(field) %]
+
+  <dt id="[% field FILTER html %]">[% field_desc FILTER html %]</dt>
+    <dd>
+      [% field_help_map.${field_desc}.help FILTER html_light %]
+    </dd>
+[% END %]
+</dl>
+
+[% PROCESS global/footer.html.tmpl %]

@@ -1,0 +1,24 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# Migration note: this file corresponds to the old Param
+  # 'entryheaderhtml'
+  #%]
+
+[%# You can make the output of this template product-specific by using
+  # Template Toolkit IF statements.  The current product name is stored in
+  # the 'product' variable.
+  #%]
+
+[% PROCESS global/variables.none.tmpl %]
+
+Прежде, чем регистрировать новую [% terms.bug_acc %], пожалуйста, прочтите
+<a href="page.cgi?id=bug-writing.html">
+руководство по регистрации [% terms.bugs_gen %]</a>, ознакомьтесь со списком
+<a href="duplicates.cgi">наиболее часто регистрируемых [% terms.bugs_gen %]</a>, и выполните
+<a href="query.cgi">поиск</a> среди существующих [% terms.bugs_gen %].

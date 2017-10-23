@@ -1,0 +1,56 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[% PROCESS global/variables.none.tmpl %]
+
+[% title = BLOCK %]Подтвердите удаление вида согласования '[% flag_type.name FILTER html %]'[% END %]
+
+[% PROCESS global/header.html.tmpl
+  title = title
+  doc_section = "flags-overview.html#flags-delete"
+%]
+
+<p>
+  [% IF flag_type.flag_count %]
+    Найдено
+    [%+ numeral(flag_type.flag_count,
+       "${flag_type.flag_count} согласование",
+       "${flag_type.flag_count} согласования",
+       "${flag_type.flag_count} согласований")
+    FILTER html %]
+    вида [% flag_type.name FILTER html %].
+    Если вы удалите этот вид, соответствующие запросы тоже будут удалены. 
+  [% END %]
+   Вместо удаления вида вы можете 
+   <a href="editflagtypes.cgi?action=deactivate&amp;id=[% flag_type.id %]&amp;token=
+           [%- token FILTER html %]">запретить его</a>.
+   В этом случае согласования этого типа останутся в базе данных, но не будут
+   отображаться на экране.
+</p>
+
+<table>
+   <tr>
+      <td colspan="2">
+         Вы в самом деле хотите удалить этот вид согласования?
+      </td>
+   </tr>
+   <tr>
+      <td>
+         <a href="editflagtypes.cgi?action=delete&amp;id=[% flag_type.id %]&amp;token=
+                 [%- token FILTER html %]">Да, удалить
+         </a>
+      </td>
+      <td align="right">
+         <a href="editflagtypes.cgi">
+            Нет, не удалять
+         </a>
+      </td>
+   </tr>
+</table>
+
+[% PROCESS global/footer.html.tmpl %]

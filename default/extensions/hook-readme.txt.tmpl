@@ -1,0 +1,15 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[% PROCESS global/variables.none.tmpl %]
+
+Хуки шаблонов размещаются в этом каталоге. Хуки шаблонов вызываются в обычных шаблонах
+[%+ terms.Bugzilla %] как [[% '%' %] Hook.process('some-hook') %].
+Более подробную информацию о них можно найти в документации на 
+B[% %]ugzilla::Extension. (Выполните "perldoc B[% %]ugzilla::Extension" из главного
+каталога [%+ terms.Bugzilla %] чтобы увидеть эту документацию.)

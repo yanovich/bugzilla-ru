@@ -1,0 +1,50 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# INTERFACE:
+  # token: random string used to authenticate the transaction.
+  # expiration_ts: expiration date of the token.
+  # email: email address of the new account.
+  #%]
+
+[% PROCESS global/variables.none.tmpl %]
+
+From: [% Param('mailfrom') %]
+To: [% email %]
+Subject: [% terms.Bugzilla %]: подтверждение создания учетной записи
+X-Bugzilla-Type: admin
+
+Системой [%+ terms.Bugzilla %] получена заявка на создание учетной записи
+с адресом электронной почты ([% email %]).
+
+Для подтверждения создания учетной записи с этим адресом электронной
+почты перейдите по ссылке не позднее [%+ expiration_ts FILTER time("%H:%M %Z %d.%m.%Y") %]:
+
+[%+ urlbase %]token.cgi?t=[% token FILTER uri %]&a=request_new_account
+
+Если Вы не получили этого сообщения до [%+ expiration_ts FILTER time("%H:%M %Z %d.%m.%Y") %] или
+хотите создать учетную запись с другим адресом электронной почты, Вы можете
+начать регистрацию заново:
+
+[%+ urlbase %]createaccount.cgi
+
+[% IF Param('createemailregexp') == '.*' && Param('emailsuffix') == '' %]
+ОБРАТИТЕ ВНИМАНИЕ: [% terms.Bugzilla %] — общедоступная система отслеживания [% terms.bugs_gen %].
+Данные о многих [% terms.bugs_obj %], включая адреса электронной почты, находятся в 
+открытом доступе.  Рекомендуется использовать неосновной почтовый ящик или
+бесплатную почтовую службу (например, Gmail, mail.ru, Яндекс.Почта и т.п.)
+во избежание получения нежелательной почты (спама) в основной почтовый ящик.
+[% END %]
+
+Если вы не делали такой заявки или хотите её аннулировать, перейдите 
+по ссылке:
+
+[%+ urlbase %]token.cgi?t=[% token FILTER uri %]&a=cancel_new_account
+
+Если упомянутые ссылки не работают или у Вас есть другие вопросы, связанные
+с Вашей учетной записью, обратитесь к администратору: [% Param('maintainer') %].

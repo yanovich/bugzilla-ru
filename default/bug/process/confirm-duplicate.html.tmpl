@@ -1,0 +1,64 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# INTERFACE:
+  # original_bug_id: number; the bug number for the bug
+  #   against which a bug is being duped
+  # duplicate_bug_id: number; the bug number for the bug
+  #   being duped
+  # cclist_accessible: boolean; whether or not users on the cc: list
+  #   of the original bug can access that bug.
+  #%]
+
+[% PROCESS global/variables.none.tmpl %]
+[% PROCESS global/header.html.tmpl title="Предупреждение о дублировании" %]
+[% orig_bug = "$terms.bug $original_bug_id"
+     FILTER bug_link(original_bug_id) %]
+
+<p>
+  При признании [% terms.bug_gen %] дубликатом существующей, ее инициатор
+  добавляется в число подписчиков оригинала.  Настройки доступа к
+  оригиналу — [% terms.bug_dat %] [% orig_bug FILTER none %] — таковы,
+  что инициатор дубликата не имеет доступа к ней.
+</p>
+
+<p>
+  <b>Добавление инициатора в список подписчиков [% terms.bug_gen %] 
+    [%+ orig_bug FILTER none %]
+  [% IF cclist_accessible %]
+    немедленно даст
+  [% ELSE %]
+    может в будущем дать
+  [% END %]
+  инициатору доступ к оригиналу.</b>
+  Продолжить регистрацию дубликата?
+</p>
+
+<form method="post" action="process_bug.cgi">
+
+[% PROCESS "global/hidden-fields.html.tmpl" exclude="^Bugzilla_(login|password)$" %]
+
+<p>
+  <input type="radio" name="confirm_add_duplicate" value="1">
+    Да, подписать инициатора на [% terms.bug_acc %] [%+ orig_bug FILTER none %]
+</p>
+<p>
+  <input type="radio" name="confirm_add_duplicate" value="0" checked="checked">
+    Нет, не подписывать инициатора на [% terms.bug_acc %] [%+ orig_bug FILTER none %]
+</p>
+<p>
+  [% "Отменить изменения и вернуться к $terms.bug_dat $duplicate_bug_id"
+     FILTER bug_link(duplicate_bug_id) FILTER none %]
+</p>
+<p>
+  <input type="submit" id="process" value="Сохранить">
+</p>
+
+</form>
+
+[% PROCESS global/footer.html.tmpl %]

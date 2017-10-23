@@ -1,0 +1,27 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+From: [% Param('mailfrom') %]
+To: [% emailaddress %]
+Subject: Запрос на изменение адреса email пользователя [% terms.Bugzilla %]
+Importance: High
+X-MSMail-Priority: High
+X-Priority: 1
+X-Bugzilla-Type: admin
+
+Получен запрос на изменение Вашего адреса электронной почты в
+[%+ terms.Bugzilla %] на [% newemailaddress %].
+
+Если Вы не запрашивали этого изменения либо хотите его аннулировать,
+выберите ссылку:
+
+[%+ urlbase %]token.cgi?t=[% token FILTER uri %]&a=cxlem
+
+Если Вы не ответите и [% newemailaddress %] подтвердит изменение, 
+новый адрес вступит в силу через [%- constants.MAX_TOKEN_AGE %] дней 
+([% expiration_ts FILTER time("%d.%m.%Y %H:%M %Z") %]).

@@ -1,0 +1,56 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# INTERFACE:
+  # products: array of product objects
+  # showbugcounts: if defined, then bug counts should be included in the table
+  #%]
+
+[% PROCESS global/variables.none.tmpl %]
+
+[% PROCESS global/header.html.tmpl
+  title = "Выберите объект?"
+%]
+
+[% columns = [
+     { 
+       name => "name"
+       heading => "Изменить версии..."
+       contentlink => "editversions.cgi?product=%%name%%" 
+     },
+     { 
+       name => "description"
+       heading => "Описание" 
+       allow_html_content => 1
+     }
+   ]
+%]
+
+[% IF showbugcounts %]
+
+  [% columns.push({
+      name => 'bug_count'
+      heading => "$terms.Bugs_gen"
+      align => "right"
+      contentlink => "buglist.cgi?product=%%name%%"
+    })
+  %]
+
+[% END %]
+
+[% PROCESS admin/table.html.tmpl
+     columns = columns
+     data = products
+%]
+
+[% IF !showbugcounts %]
+  <p><a href="editversions.cgi?showbugcounts=1">
+      Показать счетчики [% terms.bugs_gen %] (требует времени)</a></p>
+[% END %]
+
+[% PROCESS global/footer.html.tmpl %]

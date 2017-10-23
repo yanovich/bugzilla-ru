@@ -1,0 +1,155 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# INTERFACE:
+  # groups: array with group objects having the properties:
+  #   - id: number. The ID of the group.
+  #   - name: string. The name of the group.
+  #   - description: string. The description of the group.
+  #   - userregexp: string. The user regexp for the given group.
+  #   - isactive: boolean int. Specifies if the group is active or not.
+  #   - isbuggroup: boolean int. Specifies if it can be used for bugs.
+  #%]
+
+[% PROCESS global/header.html.tmpl
+  title = "Группы пользователей"
+  subheader = "Позволяет настраивать группы для включения пользователей."
+  doc_section = "groups.html"
+%]
+
+[% edit_contentlink = "editgroups.cgi?action=changeform&amp;group=%%id%%" %]
+[% del_contentlink = "editgroups.cgi?action=del&amp;group=%%id%%" %]
+
+[% columns =
+  [{name               => 'name'
+    heading            => 'Имя'
+    contentlink        => edit_contentlink
+   }
+   {name               => 'description'
+    heading            => 'Описание'
+    allow_html_content => 1
+   }
+   {name               => 'userregexp'
+    heading            => 'Шаблон пользователя'
+   }
+   {name               => 'is_active_bug_group'
+    heading            => "Использовать для $terms.bugs_gen"
+    align              => 'center'
+   }
+   {name               => 'type'
+    heading            => 'Тип'
+    align              => 'center'
+   }
+   {name               => 'action'
+    heading            => 'Действие'
+   }
+  ]
+%]
+[%# FIXME-ru: переводы описаний стандартных групп %]
+
+[% overrides.is_active_bug_group = {
+     'is_active_bug_group' => {
+       "0" => {
+          override_content => 1
+          content => "&nbsp;"
+       }
+       "1" => {
+          override_content => 1
+          content => "X"
+       }
+     }
+   }
+
+   overrides.userregexp = {
+     'userregexp' => {
+       "" => {
+         override_content => 1
+         content => "&nbsp;"
+       }
+     }
+   } 
+%]
+
+[% FOREACH group IN ["chartgroup", "insidergroup", "timetrackinggroup", "querysharegroup"] %]
+  [% special_group = Param(group) %]
+
+  [% IF special_group %]
+    [% overrides.action.name.$special_group = {
+         override_content => 1
+         content => "(используется в параметре '$group')"
+       }
+    %]
+  [% END %]
+[% END %]
+
+[% overrides.action.isbuggroup = {
+     "1" => {
+         override_content => 1
+         content => "Удалить"
+         override_contentlink => 1
+         contentlink => del_contentlink
+     }
+   }
+
+   overrides.type.isbuggroup = {
+     "0" => {
+         override_content => 1
+         content => "системная"
+     }
+     "1" => {
+         override_content => 1
+         content => "пользовательская"
+     }
+   }
+%] 
+
+[% PROCESS admin/table.html.tmpl
+  columns = columns
+  data    = groups
+  overrides = overrides
+%]
+
+<p><a href="editgroups.cgi?action=add">Создать группу</a></p>
+
+<p>
+  <b>Имя</b> — это то, что использует функция B<!-- blah -->ugzilla->user->in_group() в
+специальных файлах cgi, которые вы пишете для использования данной
+группой. Оно также может использоваться пользователями, регистрирующими 
+[% terms.bugs_acc %] по электронной почте, чтобы ограничить доступ к 
+[% terms.bug_obj %] некоторым набором групп. Имя не может содержать
+пробелов.
+</p>
+
+<p>
+  <b>Описание</b> отображается в форме редактирования 
+[% terms.bugs_gen %] членам группы.  Они должны определить, будет ли 
+[% terms.bug %] доступна всем или только членам этой группы.
+</p>
+
+<p>
+  <b>Шаблон пользователя</b> необязателен, если он указан, членство в
+этой группе автоматически предоставлено любому, чей адрес электронной
+почты соответствует указанному шаблону.  Синтаксис шаблона соответствует
+регулярному выражению Perl.  Пример: '@mycompany\.com$'
+</p>
+
+<p>
+  Флажок <b>Использовать для [% terms.bugs_gen %]</b> определяет,
+может ли группа использоваться для управления доступом к 
+[% terms.bugs_dat %].  Если его снять, пользователи впредь не смогут
+добавить [% terms.bugs_acc %] к этой группе, хотя уже имеющиеся в
+группе [% terms.bugs %] будут принадлежать ей.  Это менее радикальный
+способ остановить рост группы, нежели ее удаление.  Кроме того,
+ненужные группы не загромождают форму редактирования [% terms.bugs_gen %].
+</p>
+
+<p>
+  Поле <b>Тип</b> указывает на системные группы, их нельзя удалить.
+</p>
+
+[% PROCESS global/footer.html.tmpl %]

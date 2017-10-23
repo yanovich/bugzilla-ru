@@ -1,0 +1,50 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# INTERFACE:
+  # value: string; the value being inserted/edited.
+  # field: object; the field which the value belongs/belonged to.
+  #
+  # no_XXX_link: boolean; if defined, then don't show the corresponding
+  #                       link. Supported parameters are:
+  #
+  # no_edit_link
+  # no_edit_other_link
+  # no_add_link
+  #%]
+
+[% PROCESS "global/field-descs.none.tmpl" %]
+  
+<hr>
+
+<p>
+
+[% UNLESS no_add_link %]
+  <a title="Создать значение атрибута '[% field_descs.${field.description} FILTER html %]'."
+     href="editvalues.cgi?action=add&amp;field=
+          [%- field.name FILTER uri %]">Создать</a> новое значение.
+[% END %]
+
+[% IF value.defined && !no_edit_link %]
+  Изменить значение <a 
+  title="Изменить значение '[% value.name FILTER html %]' атрибута '
+         [%- field_descs.${field.name} FILTER html %]'"
+  href="editvalues.cgi?action=edit&amp;field=
+        [%- field.name FILTER uri %]&amp;value=
+        [%- value.name FILTER uri %]">
+        '[% value.name FILTER html %]'</a>.
+[% END %]
+
+[% UNLESS no_edit_other_link %]
+  Изменить другие значения атрибута <a 
+  href="editvalues.cgi?field=
+        [%- field.name FILTER uri %]">'[% field_descs.${field.name} FILTER html %]'</a>.
+
+[% END %]
+
+</p>

@@ -1,0 +1,95 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# INTERFACE:
+  # none
+  #%]
+
+[% PROCESS global/header.html.tmpl
+  title = "Добавление группы"
+  subheader = "Эта страница позволит вам определить новую группу пользователей."
+  doc_section = "groups.html#create-groups"
+%]
+
+<form method="post" action="editgroups.cgi">
+  <table border="1" cellpadding="4" cellspacing="0"><tr>
+    <th>Новое имя</th>
+    <th>Новое описание</th>
+    <th>Новый шаблон пользователя</th>
+    <th>Использовать для [% terms.bugs_gen %]</th>
+  </tr><tr>
+    <td><input size="20" name="name"></td>
+    <td><input size="40" name="desc"></td>
+    <td><input size="30" name="regexp"></td>
+    <td><input type="checkbox" name="isactive" value="1" checked></td>
+  </tr>
+  <tr>
+    <th>Значок (URL):</th>
+    <td colspan="3"><input type="text" size="70" maxlength="255" id="icon_url" name="icon_url"></td>
+  </tr>
+  [% Hook.process('field') %]
+  </table>
+
+  <hr>
+
+  <input type="checkbox" id="insertnew" name="insertnew" value="1"
+    [% IF Param("makeproductgroups") %] checked[% END %]>
+  <label for="insertnew">Добавить новую группу во все имеющиеся объекты.</label>
+  <p>
+  <input type="submit" id="create" value="Добавить">
+  <input type="hidden" name="action" value="new">
+  <input type="hidden" name="token" value="[% token FILTER html %]">
+</form>
+
+<p><b>Имя</b> это то, что использует функция B<!-- blah -->ugzilla->user->in_group() в специальных
+файлах cgi, которые вы пишете для использования данной группой. Оно также может
+использоваться людьми, регистрирующими [% terms.bugs_acc %]
+по электронной почте, чтобы ограничить доступ к [% terms.bug_obj %] 
+некоторым набором групп.</p>
+
+<p><b>Описание</b> это то, что будет показано при редактировании [% terms.bugs_gen %] 
+членам группы.  Они должны определить, будет ли [% terms.bug %] 
+доступна всем или только членам этой группы.</p>
+
+<p>Флажок <b>Использовать для [% terms.bugs_gen %]</b> определяет, 
+может ли группа использоваться для управления доступом к [% terms.bugs_dat %]. 
+Если его снять, пользователи впредь не смогут добавить [% terms.bugs_acc %] 
+к этой группе, хотя уже имеющиеся в группе [% terms.bugs %], будут принадлежать 
+ей. Это менее радикальный способ остановить рост группы, нежели
+удаление группы. <b>Обратите внимание: Если вы создаете группу, вы, вероятно,
+хотите, чтобы она могла быть использована для работы с [% terms.bugs_abl %]. 
+В этом случае вы должны оставить флажок включенным.</b></p>
+
+<p><b>Шаблон пользователя</b> необязателен, если он указан, 
+членство в этой группе автоматически предоставлено любому, чей адрес 
+электронной почты соответствует указанному шаблону.</p>
+
+<p>
+  <b>Значок</b> — необязательный параметр, адрес URL изображения, используемого
+  для символического представления группы.  Адрес URL может быть относительным
+  (от базового URL этого экземпляра) или абсолютным.  Значок отображается
+  в комментариях к [% terms.bugs_dat %] рядом с именем автора.
+</p>
+
+[% IF Param("makeproductgroups") %]
+  <p>По умолчанию новая группа ассоциируется с имеющимися объектами.
+  Отмена опции "Добавлять новую группу во все имеющиеся объекты" предотвратит
+  это, и приведет к тому, что группа станет видимой только тогда, когда будет
+  добавлена к объекту.</p>
+[% ELSE %]
+  <p>Установка опции "Добавлять новую группу во все имеющиеся объекты"
+   приведёт к ассоциации новой группы с имеющимися объектами. Оставление этой
+   опции не установленной приведёт к тому, что группа станет видимой только
+   тогда, когда будет добавлена к объекту.</p>
+[% END %]
+
+<p>Вернуться к <a href="./">в начало</a>
+
+или к <a href="editgroups.cgi">списку групп</a>.
+
+[% PROCESS global/footer.html.tmpl %] 

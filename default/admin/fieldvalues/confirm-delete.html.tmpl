@@ -1,0 +1,145 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# INTERFACE:
+  # value: Bugzilla::Field::Choice; The field value being deleted.
+  # value_count: number; The number of values available for this field.
+  # field: object; the field the value is being deleted from.
+  #%]
+
+[% PROCESS "global/field-descs.none.tmpl" %]
+
+[% title = BLOCK %]
+  Удаление значения '[% value.name FILTER html %]' атрибута 
+  '[% field_descs.${field.name} FILTER html %]' ([% field.name FILTER html %])
+[% END %]
+
+[% PROCESS global/header.html.tmpl
+  title = title
+  style_urls = ['skins/standard/admin.css']
+%]
+
+<table border="1" cellpadding="4" cellspacing="0">
+<tr bgcolor="#6666FF">
+  <th valign="top" align="left">Поле</th>
+  <th valign="top" align="left">Значение</th>
+</tr>
+<tr>
+  <td valign="top">Атрибут:</td>
+  <td valign="top">[% field_descs.${field.name} FILTER html %]</td>
+</tr>
+<tr>
+  <td valign="top">Значение атрибута:</td>
+  <td valign="top">[% value.name FILTER html %]</td>
+</tr>
+<tr>
+  <td valign="top">[% terms.Bugs_gen %]:</td>
+  <td valign="top">
+[% IF value.bug_count %]
+  <a title="Список [% terms.bugs_gen %], использующих значение 
+            '[% value.name FILTER html %]' 
+            атрибута '[% field_descs.${field.name} FILTER html %]'"
+     href="buglist.cgi?[% field.name FILTER uri %]=
+           [%- value.name FILTER uri %]">
+   [%- value.bug_count FILTER html %]</a>
+[% ELSE %]
+  Нет
+[% END %]
+  </td>
+</tr>
+</table>
+
+<h2>Подтверждение</h2>
+
+[% IF value.is_default || value.bug_count || (value_count == 1)
+      || value.controls_visibility_of_fields.size
+      || value.controlled_values_array.size 
+%]
+
+  <p>Значение '[% value FILTER html %]' атрибута
+  '[% field_descs.${field.name} FILTER html %]' не может быть удалено:</p>
+
+  <ul class="warningmessages">
+    [% IF value.is_default %]
+      <li>Значение '[% value.name FILTER html %]' используется по умолчанию
+        для атрибута '[% field_descs.${field.name} FILTER html %]'.
+        [% IF user.in_group('tweakparams') %]
+          Перед удалением следует <a href="editparams.cgi?section=bugfields">изменить 
+          умолчание</a>.
+        [% END %]
+      </li>
+    [% END %]
+
+    [% IF value.bug_count %]
+      <li>
+        Значение атрибута используется в [% value.bug_count FILTER html %]
+        [% numeral(value.bug_count,
+           "${terms.bug_obj}", "${terms.bugs_obj}", "${terms.bugs_obj}")
+           FILTER html -%].
+        Перед удалением следует выбрать другое значение атрибута для 
+        <a title="Список [% terms.bugs_gen %], использующих значение '[% value FILTER html %]' 
+                  атрибута '[% field_descs.${field.name} FILTER html %]'"
+             href="buglist.cgi?[% field.name FILTER uri %]=
+                   [%- value.name FILTER uri %]">
+           этих [%+ terms.bugs_gen %]</a>
+      </li>
+    [% END %]
+
+    [% IF value_count == 1 %]
+      <li>Значение '[% value.name FILTER html %]' является единственным допустимым для атрибута
+        '[%- field_descs.${field.name} FILTER html %]' и не может быть удалено.
+      </li>
+    [% END %]
+
+    [% IF value.controls_visibility_of_fields.size %]
+      <li>От этого значения зависит видимость следующих атрибутов:<br>
+        [% FOREACH field = value.controls_visibility_of_fields %]
+          <a href="editfields.cgi?action=edit&name=
+                   [%- field.name FILTER uri %]">
+            [%- field.description FILTER html %] 
+            ([% field.name FILTER html %])</a><br>
+        [% END %]
+      </li>
+    [% END %]
+
+    [% IF value.controlled_values_array.size %]
+      <li>От этого значения зависит видимость следующих значений
+        других атрибутов:<br>
+       [% FOREACH field_name = value.controlled_values.keys %]
+         [% FOREACH controlled = value.controlled_values.${field_name} %]
+           <a href="editvalues.cgi?action=edit&field=
+                    [%- controlled.field.name FILTER uri %]&value=
+                    [%- controlled.name FILTER uri %]">
+             [% field_descs.${controlled.field.name} FILTER html %]
+             ([% controlled.field.name FILTER html %]):
+             [%+ controlled.name FILTER html %]</a><br>
+         [% END %]
+       [% END %]
+      </li>
+    [% END %]
+  </ul>
+
+[% ELSE %]
+
+  <p>Удалить значение?<p>
+
+  <form method="post" action="editvalues.cgi">
+    <input type="submit" value="Да, удалить" id="delete">
+    <input type="hidden" name="action" value="delete">
+    <input type="hidden" name="field" value="[% field.name FILTER html %]">
+    <input type="hidden" name="value" value="[% value.name FILTER html %]">
+    <input type="hidden" name="token" value="[% token FILTER html %]">
+  </form>
+
+[% END %]
+
+[% PROCESS admin/fieldvalues/footer.html.tmpl
+  no_edit_link = 1
+ +%]
+
+[% PROCESS global/footer.html.tmpl %] 

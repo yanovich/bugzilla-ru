@@ -1,0 +1,173 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# INTERFACE:
+  # release: a hash containing data about new releases, if any.
+  #%]
+
+[% PROCESS global/variables.none.tmpl %]
+
+[% PROCESS global/header.html.tmpl
+   title = "$terms.Bugzilla: главная страница"
+   header = "Главная страница" 
+   header_addl_info = "версия ${constants.BUGZILLA_VERSION} (ru: 4.4.5)"
+   style_urls = [ 'skins/standard/index.css' ]
+%]
+
+
+<script type="text/javascript">
+<!--
+function onLoadActions() {
+  quicksearchHelpText('quicksearch_main', 'show');
+  if( window.external.AddSearchProvider ){
+    YAHOO.util.Dom.removeClass('quicksearch_plugin', 'bz_default_hidden');
+  }
+  document.getElementById('quicksearch_top').focus();
+}
+var quicksearch_message = "Введите номер [% terms.bug_gen %] или текст для поиска";
+
+function checkQuicksearch( form ) {
+  if (form.quicksearch.value == '' || form.quicksearch.value == quicksearch_message ) { 
+    alert('Введите данные для поиска.');
+    return false; 
+  }
+  return true;         
+}
+
+function quicksearchHelpText(el_id, action){
+  var el = document.getElementById(el_id);
+  if ( action == "show") {
+    if( el.value == "" ) {
+      el.value = quicksearch_message
+      YAHOO.util.Dom.addClass(el, "quicksearch_help_text");
+    }
+  } else {
+    if( el.value == quicksearch_message ) {
+      el.value = "";
+      YAHOO.util.Dom.removeClass(el, "quicksearch_help_text");
+    }
+  }
+}
+YAHOO.util.Event.onDOMReady(onLoadActions);
+//-->
+</script>
+
+[% IF release %]
+  <div id="new_release">
+    [% IF release.data %]
+      [% IF release.deprecated %]
+        <p>[% terms.Bugzilla %] [%+ release.deprecated FILTER html %] больше
+        не поддерживается. Для поддержания безопасности Вашей системы на должном уровне
+        настоятельно рекомендуется обновить версию.</p>
+      [% END %]
+
+      <p>Новая версия [% terms.Bugzilla %] ([% release.data.latest_ver FILTER html %])
+      доступна здесь:
+      <a href="[% release.data.url FILTER html %]">[% release.data.url FILTER html %]</a>.<br>
+      Дата выпуска: [% release.data.date FILTER html %]</p>
+
+      <p class="notice">Данное сообщение отображается только пользователям с правами администратора.
+      Настройка этого сообщения возможна в
+      <a href="editparams.cgi?section=general#upgrade_notification_desc">настройках системы</a>.</p>
+    [% ELSIF release.error == "cannot_download" %]
+      <p>Не удалось загрузить удалённый файл <a href="[% constants.REMOTE_FILE FILTER html %]">
+      [%~ constants.REMOTE_FILE FILTER html %]</a> (причина: [% release.reason FILTER html %]).<br>
+      Либо удалённый сервер временно недоступен, либо веб-сервер не имеет доступа в Интернет.
+      При использовании proxy установите
+      параметр <a href="editparams.cgi?section=advanced#proxy_url_desc">proxy_url</a>.</p>
+    [% ELSIF release.error == "no_write" %]
+      <p>Ошибка создания локального файла XML '[% constants.LOCAL_FILE FILTER html %]'
+      (причина: [% release.reason FILTER html %]).<br>
+      Убедитесь что у веб-сервера достаточно прав на создание файла в этом каталоге.
+    [% ELSIF release.error == "no_update" %]
+      <p>Ошибка обновления локального файла XML'[% constants.LOCAL_FILE FILTER html %]'.
+      Убедитесь что у веб-сервера достаточно прав для изменения файла.</p>
+    [% ELSIF release.error == "no_access" %]
+      <p>Ошибка чтения локального файла XML '[% constants.LOCAL_FILE FILTER html %]'.
+      Проверьте права доступа к файлу.</p>
+    [% ELSIF release.error == "corrupted" %]
+      <p>Недопустимый формат локального файла XML '[% constants.LOCAL_FILE FILTER html %]'.
+      Удалите его и обновите эту страницу.</p>
+    [% ELSIF release.error == "unknown_parameter" %]
+      <p>Недопустимое значение параметра оповещения об обновлениях '[% Param("upgrade_notification") FILTER html %]' 
+      Проверьте значение параметра на странице 
+      <a href="editparams.cgi?section=general#upgrade_notification_desc">настройки системы</a>.</p>
+    [% END %]
+  </div>
+[% END %]
+
+<div id="page-index">
+  <table>
+    <tr>
+      <td>
+        <h1 id="welcome"> Добро пожаловать в [% terms.Bugzilla %]</h1>
+        <div class="intro">[% Hook.process('intro') %]</div>
+
+        <div class="bz_common_actions">
+          <ul>
+            <li>
+              <a id="enter_bug" href="enter_bug.cgi"><span>Зарегистрировать [% terms.bug_acc %]</span></a>
+            </li>
+            <li>
+              <a id="query" href="query.cgi"><span>Найти</span></a>
+            </li>
+            <li>
+              <a id="account"
+                 [% IF user.id %]
+                   href="userprefs.cgi"><span>Настройки пользователя</span></a>
+                 [% ELSIF Param('createemailregexp')
+                          && user.authorizer.user_can_create_account 
+                 %]
+                   href="createaccount.cgi"><span>Зарегистрировать нового пользователя</span></a>
+                 [% ELSE %]
+                   href="?GoAheadAndLogIn=1"><span>Войти</span></a>
+                 [% END %]
+            </li>
+          </ul>
+        </div>
+
+        <form id="quicksearchForm" name="quicksearchForm" action="buglist.cgi"
+              onsubmit="return checkQuicksearch(this);">
+          <div>
+            <input id="quicksearch_main" type="text" name="quicksearch"
+              title="Быстрый поиск"            
+              onfocus="quicksearchHelpText(this.id, 'hide');"
+              onblur="quicksearchHelpText(this.id, 'show');"
+            >
+            <input id="find" type="submit" value="Найти">
+            <ul class="additional_links" id="quicksearch_links">
+              <li>
+                <a href="page.cgi?id=quicksearch.html">Справка по поиску</a>
+              </li>
+              <li class="bz_default_hidden" id="quicksearch_plugin">
+                |
+                <a href="javascript:window.external.AddSearchProvider('[% urlbase FILTER html %]search_plugin.cgi')">
+                 Установить надстройку для быстрого поиска
+                </a>
+              </li>
+            </ul>
+            <ul class="additional_links">
+              <li>
+                <a href="[% docs_urlbase FILTER html %]using.html">
+                  Руководство пользователя [% terms.Bugzilla -%]</a>
+              </li>
+              <li>
+                |
+                <a href="page.cgi?id=release-notes.html">Сопроводительная записка к релизу</a>
+              </li>
+              [% Hook.process('additional_links') %]              
+            </ul>
+          </div>
+        </form>
+        <div class="outro">[% Hook.process('outro') %]</div>
+      </td>
+    </tr>
+  </table>
+</div>
+
+[% PROCESS global/footer.html.tmpl %]

@@ -1,0 +1,64 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# You can use this hash to localize (translate) the values displayed
+  # for drop-down and multiple-select fields. Lines starting with "#"
+  # are comments.
+  #%]
+[% value_descs = {
+  "bug_status" => {
+    "UNCONFIRMED" => "Неподтвержденная",
+    "NEW"         => "Новая",
+    "CONFIRMED"   => "Подтвержденная",
+    "ASSIGNED"    => "Назначена",
+    "REOPENED"    => "Повторная",
+    "IN_PROGRESS" => "Решается",
+    "RESOLVED"    => "Решена",
+    "VERIFIED"    => "Принята",
+    "CLOSED"      => "Закрыта",
+  },
+
+  "resolution" => {
+    ""           => "---",
+    "FIXED"      => "Исправлена",
+    "INVALID"    => "Аннулирована",
+    "WONTFIX"    => "Отказано",
+    "DUPLICATE"  => "Дублирующая",
+    "WORKSFORME" => "Невоспроизводимая",
+    "MOVED"      => "Перемещена",
+    ""           => "---",
+  },
+
+  "bug_severity" => {
+    "blocker"     => "Чрезвычайная",
+    "critical"    => "Критическая",
+    "major"       => "Серьезная",
+    "normal"      => "Существенная",
+    "minor"       => "Незначительная",
+    "trivial"     => "Тривиальная",
+    "enhancement" => "Пожелание",
+  },
+
+  "priority" => {
+    "Highest"    => "Наивысший",
+    "High"       => "Высокий",
+    "Normal"     => "Обычный",  
+    "Low"        => "Низкий", 
+    "Lowest"     => "Наинизший",   
+  },  
+
+  "op_sys" => {
+    "All"   => "Любая",
+    "Other" => "Другая",
+  },
+
+  "rep_platform" => {
+    "All"   => "Любая",
+    "Other" => "Другая",
+  },
+} %]

@@ -1,0 +1,299 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[% PROCESS global/variables.none.tmpl %]
+
+[% title = BLOCK %]
+    Управление доступом к объекту [% product.name FILTER html %]
+[% END %]
+[% PROCESS global/header.html.tmpl 
+   title = title 
+%]
+
+[% display_headers = 1 %]
+[% FOREACH group = product.group_controls(1).values.sort("name") %]
+  [% NEXT UNLESS group.group.isactive OR group.bug_count %]
+  [% IF display_headers %]
+    [% display_headers = 0 %]
+    <form method="post" action="editproducts.cgi">
+      <input type="hidden" name="action" value="updategroupcontrols">
+      <input type="hidden" name="product" value="[% product.name FILTER html %]">
+      <input type="hidden" name="token" value="[% token FILTER html %]">
+
+      <table id="form" cellspacing="0" cellpadding="4" border="1">
+        <tr bgcolor="#6666ff">
+          <th>Группа</th>
+          <th>Создание</th>
+          <th>Для группы</th>
+          <th>Для остальных</th>
+          <th>Редакторы</th>
+          <th>Разделы</th>
+          <th>Подтверждение</th>
+          <th>Редактировать любые [% terms.bugs %]</th>          
+        </tr>
+  [% END %]
+  [% IF !group.group.isactive %]
+    <tr bgcolor="#bbbbbb">
+      <td>[% group.group.name FILTER html %]</td>
+      <td align="center" colspan="7">Закрыта</td>
+      <td>[% group.bug_count FILTER html %]</td>
+    </tr>
+  [% ELSE %]
+    <tr>
+      <td>[% group.group.name FILTER html %]</td>
+      <td>
+        <input type=checkbox value=1 name=entry_[% group.id %]
+          [% " checked='checked'" IF group.entry %]>
+      </td>
+      <td>
+        <select name="membercontrol_[% group.id %]">
+          <option value=[% constants.CONTROLMAPNA %]
+            [% " selected='selected'" IF group.membercontrol == constants.CONTROLMAPNA %]
+            >Запрещено
+          </option>
+          <option value=[% constants.CONTROLMAPSHOWN %]
+            [% " selected='selected'" IF group.membercontrol == constants.CONTROLMAPSHOWN %]
+            >Разрешено
+          </option>
+          <option value=[% constants.CONTROLMAPDEFAULT %]
+            [% " selected='selected'" IF group.membercontrol == constants.CONTROLMAPDEFAULT %]
+            >Включено
+          </option>
+          <option value=[% constants.CONTROLMAPMANDATORY %]
+            [% " selected='selected'" IF group.membercontrol == constants.CONTROLMAPMANDATORY %]
+            >Обязательно
+          </option>
+        </select>
+      </td>
+      <td>
+        <select name="othercontrol_[% group.id %]">
+          <option value=[% constants.CONTROLMAPNA %]
+            [% " selected='selected'" IF group.othercontrol == constants.CONTROLMAPNA %]
+            >Запрещено
+          </option>
+          <option value=[% constants.CONTROLMAPSHOWN %]
+            [% " selected='selected'" IF group.othercontrol == constants.CONTROLMAPSHOWN %]
+            >Разрешено
+          </option>
+          <option value=[% constants.CONTROLMAPDEFAULT %]
+            [% " selected='selected'" IF group.othercontrol == constants.CONTROLMAPDEFAULT %]
+            >Включено
+          </option>
+          <option value=[% constants.CONTROLMAPMANDATORY %]
+            [% " selected='selected'" IF group.othercontrol == constants.CONTROLMAPMANDATORY %]
+            >Обязательно
+          </option>
+        </select>
+      </td>
+      <td>
+        <input type=checkbox value=1 name=canedit_[% group.id %]
+        [% " checked='checked'" IF group.canedit %]>
+      </td>
+      <td>
+        <input type=checkbox value=1 name=editcomponents_[% group.id %]
+        [% " checked='checked'" IF group.editcomponents %]>
+      </td>
+      <td>
+        <input type=checkbox value=1 name=canconfirm_[% group.id %]
+        [% " checked='checked'" IF group.canconfirm %]>
+      </td>
+      <td>
+        <input type=checkbox value=1 name=editbugs_[% group.id %]
+        [% " checked='checked'" IF group.editbugs %]>
+      </td>
+      <td>[% group.bug_count || 0 FILTER html %]</td>
+    </tr>
+  [% END %]
+[% END %]
+
+[% IF display_headers %]
+  <p>Для объектов не доступно ни одной группы.
+  [% IF user.in_group('creategroups') %]
+    <a href="editgroups.cgi?action=add">Создать новую группу</a>
+  [% END %]
+  </p>
+[% ELSE %]
+    </table>
+    <br>
+    <input type=submit name="submit" value="Сохранить">
+  </form>
+[% END %]
+
+<p>
+Эти параметры регулируют отношение различных групп пользователей к данному 
+объекту.
+</p>
+<p>
+Если для некоторых групп отмечен флажок <b>Создание</b>, регистрация 
+[% terms.bugs_gen %] для этого объекта разрешена только участникам
+всех отмеченных групп.
+</p>
+<p>
+Если для некоторых групп отмечен флажок <b>Редакторы</b>, изменение  
+[% terms.bugs_gen %] для этого объекта разрешено только участникам
+всех отмеченных групп.  Остальным [% terms.bugs %] будут доступны 
+только для чтения.
+</p>
+<p>
+Следующие настройки позволяют регулировать доступ <b>на уровне объекта</b>.
+Это удобный способ предоставления пользователю привилегий на отдельные
+объекты, без использования глобальных привилегий, действующих на все
+объекты:
+</p>
+<p>
+Установка флажка <b>Разделы</b> позволит членам группы
+изменять все атрибуты объекта, включая разделы,
+планы и версии.
+</p>
+<p>
+Установка флажка <b>Подтверждение</b> позволит членам группы
+подтверждать [% terms.bugs %] в этом объекте.
+</p>
+<p>
+Установка флажка <b>Редактировать любые [% terms.bugs %]</b> позволит членам группы
+изменять любые поля в [% terms.bugs_obj %] этого объекта.
+</p>
+<p>
+Поля <b>Для группы</b> и <b>Для остальных</b> управляют
+связью [% terms.bugs_gen %] и группы по следующим правилам.
+</p>
+
+<table border=1>
+  <tr>
+    <th>
+      Для группы
+    </th>
+    <th>
+      Для остальных
+    </th>
+    <th>
+      Результат
+    </th>
+  </tr>
+  <tr>
+    <td>
+      Запрещено
+    </td>
+    <td>
+      Запрещено
+    </td>
+    <td>
+      [% terms.Bugs %] этого объекта не могут быть связаны с этой группой.
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Разрешено
+    </td>
+    <td>
+      Запрещено
+    </td>
+    <td>
+      [% terms.Bugs %] этого объекта могут быть связаны с этой группой.  
+      Только участникам группы разрешено связывать [% terms.bugs %] с ней.
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Разрешено
+    </td>
+    <td>
+      Разрешено
+    </td>
+    <td>
+      [% terms.Bugs %] этого объекта могут быть связаны с этой группой
+      любым пользователем, имеющим доступ к изменению [% terms.bug_gen %].
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Разрешено
+    </td>
+    <td>
+      Включено
+    </td>
+    <td>
+      [% terms.Bugs %] этого объекта могут быть связаны с этой группой
+      любым пользователем, имеющим доступ к изменению [% terms.bug_gen %].
+      Для остальных [% terms.bug %] связана с группой при создании.
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Разрешено
+    </td>
+    <td>
+      Обязательно
+    </td>
+    <td>
+      [% terms.Bugs %] этого объекта могут быть связаны с этой группой.
+      Участникам группы разрешено связывать [% terms.bugs %] с ней.
+      Для остальных [% terms.bug %] принудительно связана с группой при создании.
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Включено
+    </td>
+    <td>
+      Запрещено
+    </td>
+    <td>
+      [% terms.Bugs %] этого объекта могут быть связаны с этой группой и 
+      связаны по умолчанию при создании.
+      Только участникам группы разрешено связывать [% terms.bugs %] с ней.
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Включено
+    </td>
+    <td>
+      Включено
+    </td>
+    <td>
+      [% terms.Bugs %] этого объекта могут быть связаны с этой группой и 
+      связаны по умолчанию при создании.
+      Участникам группы разрешено связывать [% terms.bugs %] с ней.
+      Всем пользователям разрешено ограничивать видимость [% terms.bugs_gen %] этой группой.
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Включено
+    </td>
+    <td>
+      Обязательно
+    </td>
+    <td>
+      [% terms.Bugs %] этого объекта могут быть связаны с этой группой и 
+      связаны по умолчанию при создании.
+      Участникам группы разрешено связывать [% terms.bugs %] с ней.
+      Для остальных [% terms.bug %] принудительно связана с группой при создании.
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Обязательно
+    </td>
+    <td>
+      Обязательно
+    </td>
+    <td>
+      [% terms.Bugs %] этого объекта всегда связаны с этой группой.
+      Пользователи не могут это изменить.
+    </td>
+  </tr>
+</table>
+<p>
+Обратите внимание на допустимые комбинации значений полей 
+<b>Для группы</b> и <b>Для остальных</b>.  Попытка использовать другие
+варианты (например, Обязательно/Запрещено, Включено/Разрешено, etc.)
+приведет к ошибке.
+</p>
+[% PROCESS global/footer.html.tmpl %]

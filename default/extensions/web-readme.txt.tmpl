@@ -1,0 +1,17 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[% PROCESS global/variables.none.tmpl %]
+
+Файлы, доступные из Интернет, типа файлов JavaScript, CSS и изображений
+размещаются в этом каталоге. Вы можете ссылаться на них напрямую в вашем HTML.
+Например, если у вас есть файл с именем "style.css" и ваше расширение называется
+"Foo", вы можете поместить его в "extensions/Foo/web/style.css", и сослаться на
+него в HTML как:
+
+<link href="extensions/Foo/web/style.css" rel="stylesheet" type="text/css">

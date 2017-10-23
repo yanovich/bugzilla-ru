@@ -1,0 +1,72 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# INTERFACE:
+  # token: string. The token to be used in the user account creation.
+  # email: email address of the user account.
+  # expiration_ts: expiration date of the token.
+  #%]
+
+[% title = BLOCK %]Создание учетной записи для '[% email FILTER html %]'[% END %]
+[% PROCESS "global/header.html.tmpl"
+           title = title
+           onload = "document.forms['confirm_account_form'].realname.focus();" %]
+
+<p>
+  Для создания учетной записи установите пароль.  Кроме того, можно 
+  указать полное имя и откорректировать адрес электронной почты.
+</p>
+
+<form id="confirm_account_form" method="post" action="token.cgi">
+  <input type="hidden" name="t" value="[% token FILTER html %]">
+  <input type="hidden" name="a" value="confirm_new_account">
+  <table>
+    <tr>
+      <th align="right">Адрес электронной почты:</th>
+      <td>[% email FILTER html %]</td>
+    </tr>
+    <tr>
+      <th align="right"><small><i>(НЕ ОБЯЗАТЕЛЬНО)</i></small> <label for="realname">Полное имя</label>:</th>
+      <td><input type="text" id="realname" name="realname" value=""></td>
+    </tr>
+    <tr>
+      <th align="right"><label for="passwd1">Введите пароль</label>:</th>
+      <td>
+        <input type="password" id="passwd1" name="passwd1" value="">
+        (минимум [% constants.USER_PASSWORD_MIN_LENGTH FILTER none %] символов)
+      </td>
+    </tr>
+    <tr>
+      <th align="right"><label for="passwd2">Повторите ввод пароля</label>:</th>
+      <td><input type="password" id="passwd2" name="passwd2" value=""></td>
+    </tr>
+    <tr>
+      <th align="right">&nbsp;</th>
+      <td><input type="submit" id="confirm" value="Создать"></td>
+    </tr>
+  </table>
+</form>
+
+<p>
+  Если форма не будет заполнена до 
+  <u>[%+ expiration_ts FILTER time("%d.%m.%Y %H:%M %Z") %]</u>,
+  учетная запись не будет создана.
+</p>
+
+<p>
+  Если Вы не хотите создавать учетную запись с этим адресом электронной 
+  почты, нажмите кнопку "Отказ от регистрации" и данные о Вас будут удалены.
+</p>
+
+<form id="cancel_account_form" method="post" action="token.cgi">
+  <input type="hidden" name="t" value="[% token FILTER html %]">
+  <input type="hidden" name="a" value="cancel_new_account">
+  <input type="submit" id="confirm" value="Отказ от регистрации">
+</form>
+
+[% PROCESS global/footer.html.tmpl %]

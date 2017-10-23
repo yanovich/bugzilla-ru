@@ -1,0 +1,26 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[% PROCESS global/variables.none.tmpl %]
+
+Обычные шаблоны размещаются в этом каталоге. Вы можете загружать их в
+свой код следующим образом:
+
+use B[% %]ugzilla::Error;
+my $template = B[% %]ugzilla->template;
+$template->process('[% name FILTER lower %]/ваш-шаблон.html.tmpl')
+  or ThrowTemplateError($template->error());
+
+Это приведёт к загрузке файла с именем <kbd>ваш-шаблон.html.tmpl</kbd>, который
+был размещён в этом каталоге.
+
+Примите во внимание, что вы должны убедиться, что полный путь вашего шаблона
+никогда не должен конфликтовать с шаблоном существующим в [% terms.Bugzilla %]
+или в другом расширении, или ваш шаблон может нарушить работу того шаблона.
+Вот почему мы создали для вас этот каталог называемый '[% name FILTER lower %]',
+чтобы вы могли положить сюда ваши шаблоны и избежать конфликтов.

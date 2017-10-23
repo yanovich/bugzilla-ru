@@ -1,0 +1,79 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# INTERFACE:
+  #
+  # editusers:          is viewing user member of editusers?
+  # restrictablegroups: list of groups visible to the user:
+  #                     id: group id
+  #                     name: group name
+  #%]
+ 
+
+[% PROCESS global/header.html.tmpl
+  title = "Поиск пользователей"
+  style_urls = ['skins/standard/editusers.css']
+  onload = "document.forms['f'].matchstr.focus()"
+  doc_section = "useradmin.html#user-account-search"
+%]
+
+[% PROCESS admin/users/listselectvars.html.tmpl
+  listselectionvalues = listselectionvalues
+%]
+
+<form name="f" method="get" action="editusers.cgi">
+<input type="hidden" name="action" value="list" />
+<p><label for="matchvalue">Найти пользователей по</label>
+<select id="matchvalue" name="matchvalue">
+  <option value="login_name">учетной записи</option>
+  <option value="realname">полному имени</option>
+  <option value="userid">идентификатору</option>
+</select>
+<label for="matchstr">которые</label>
+<input size="32" name="matchstr" id="matchstr" />
+<select name="matchtype">
+  <option value="substr" selected="selected">содержат строку (без учета регистра)</option>
+  <option value="regexp">соответствуют шаблону (без учета регистра)</option>
+  <option value="notregexp">не соответствуют шаблону (без учета регистра)</option>
+  <option value="exact">соответствуют в точности (конкретного пользователя)</option>
+</select>
+<input type="submit" id="search" value="Найти" /></p>
+
+[% IF restrictablegroups.size %]
+  <p><input type="checkbox" name="grouprestrict" value="1" id="grouprestrict" />
+  <label for="grouprestrict">Только входящих в группу</label>
+  <select name="groupid"
+          onchange="document.forms['f'].grouprestrict.checked=true">
+    [% FOREACH group = restrictablegroups %]
+      <option value="[% group.id FILTER html %]">[% group.name FILTER html %]</option>
+    [% END %]
+  </select></p>
+[% END %]
+
+<p>
+  <input type="checkbox" name="enabled_only" value="1" id="enabled_only"
+         checked="checked">
+  <label for="enabled_only">Только включённые учетные записи пользователей</label>
+</p>
+
+[% Hook.process('end') %]
+
+</form>
+
+[% IF editusers %]
+  <p>
+    Вы также можете <a href="editusers.cgi?action=add">создать пользователя</a>
+    [%- IF listselectionvalues %],
+      или вернуться
+      <a href="editusers.cgi?action=list[% INCLUDE listselectionurlparams %]">к
+      списку пользователей</a>
+    [%- END %].
+  </p>
+[% END %]
+
+[% PROCESS global/footer.html.tmpl %]

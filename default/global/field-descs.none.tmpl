@@ -1,0 +1,144 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# Remember to PROCESS rather than INCLUDE this template. %]
+
+[% PROCESS global/variables.none.tmpl %]
+
+[% SET search_descs = {
+  "noop"           => "---",
+  "equals"         => "равно",
+  "notequals"      => "не равно",
+  "anyexact"       => "равно любой из строк",
+  "substring"      => "содержит текст в любом регистре",
+  "casesubstring"  => "содержит текст в точности",
+  "notsubstring"   => "не содержит текста",
+  "anywordssubstr" => "содержит любое из слов (строк)",
+  "allwordssubstr" => "содержит все слова (строки)",
+  "nowordssubstr"  => "не содержит ни одного из слов",
+  "regexp"         => "содержит регулярное выражение",
+  "notregexp"      => "не содержит регулярного выражения",
+  "lessthan"       => "меньше",
+  "lessthaneq"     => "меньше или равно",
+  "greaterthan"    => "больше",
+  "greaterthaneq"  => "больше или равно",
+  "anywords"       => "содержит любое из этих слов",
+  "allwords"       => "содержит все эти слова",
+  "nowords"        => "не содержит ни одного из этих слов",
+  "changedbefore"  => "изменено до",
+  "changedafter"   => "изменено после",
+  "changedfrom"    => "изменено с",
+  "changedto"      => "изменено на",
+  "changedby"      => "изменено пользователем",
+  "matches"        => "соответствует регулярному выражению",
+  "notmatches"      => "не соответствует регулярному выражению",
+} %]
+
+[% field_types = { ${constants.FIELD_TYPE_UNKNOWN}       => "Неизвестный",
+                   ${constants.FIELD_TYPE_FREETEXT}      => "Текст",
+                   ${constants.FIELD_TYPE_SINGLE_SELECT} => "Выбор",
+                   ${constants.FIELD_TYPE_MULTI_SELECT}  => "Множественный выбор",
+                   ${constants.FIELD_TYPE_TEXTAREA}      => "Многострочный текст",
+                   ${constants.FIELD_TYPE_DATETIME}      => "Дата/Время",
+                   ${constants.FIELD_TYPE_BUG_ID}        => "Номер $terms.bug_gen",
+                } %]
+
+[% IF in_template_var %]
+  [% PROCESS "global/value-descs.none.tmpl" %]
+  [% SET vars.value_descs = value_descs %]
+  [% SET vars.terms = terms %]
+
+  [%# field_descs is loaded as a global template variable and cached
+    # across all templates--see VARIABLES in Bugzilla/Template.pm.
+    #%]
+  [% vars.field_descs = {
+    "[Bug creation]"          => "[Регистрация $terms.bug_gen]",
+     "actual_time"             => "Трудозатраты",
+     "alias"                   => "Имя",
+     "assigned_to"             => "Исполнитель",
+     "assigned_to_realname"    => "Полное имя исполнителя",     
+     "attach_data.thedata"     => "Данные приложения",
+     "attachments.description" => "Описание приложения",
+     "attachments.filename"    => "Имя файла приложения",
+     "attachments.mimetype"    => "Тип MIME приложения",
+     "attachments.ispatch"     => "Приложение является патчем",
+     "attachments.isobsolete"  => "Приложение неактуально",
+     "attachments.isprivate"   => "Приложение конфиденциально",
+     "attachments.submitter"   => "Создатель приложения",
+     "blocked"                 => "Блокирует",
+     "bug_file_loc"            => "URL",
+     "bug_group"               => "Группа",
+     "bug_id"                  => "Номер $terms.bug_gen",
+     "bug_severity"            => "Серьезность",
+     "bug_status"              => "Состояние",
+     "changeddate"             => "Дата последнего изменения",
+     "cc"                      => "Подписчики",
+     "classification"          => "Регион",
+     "cclist_accessible"       => "Список подписчиков?",
+     "commenter"               => "Участник обсуждения",
+     "component_id"            => "Код раздела",
+     "component"               => "Раздел",
+     "content"                 => "Текст",
+     "creation_ts"             => "Дата регистрации",
+     "days_elapsed"            => "Дней с момента изменения $terms.bug_gen",
+     "deadline"                => "Срок",
+     "delta_ts"                => "Время последнего изменения",
+     "dependson"               => "Зависимости",
+     "dup_id"                  => "Повторная",
+     "estimated_time"          => "Оценка времени",
+     "everconfirmed"           => "Подтверждена?",
+     "flagtypes.name"          => "Согласования",
+     "keywords"                => "Ключевые слова",
+     "longdesc"                => "Комментарий",
+     "longdescs.count"         => "Число комментариев",     
+     "longdescs.isprivate"     => "Комментарий конфиденциален",
+     "newcc"                   => "Подписчики",
+     "op_sys"                  => "ОС",
+     "opendate"                => "Дата открытия",
+     "owner_idle_time"         => "Время бездействия исполнителя",
+     "percentage_complete"     => "% выполнения",
+     "priority"                => "Приоритет",
+     "product_id"              => "Код объекта",
+     "product"                 => "Объект",
+     "qa_contact"              => "Приемка",
+     "qa_contact_realname"     => "Полное имя приемщика",     
+     "remaining_time"          => "Осталось времени",
+     "rep_platform"            => "Платформа",
+     "reporter"                => "Инициатор",
+     "reporter_accessible"     => "Инициатор доступен?",
+     "reporter_realname"       => "Полное имя инициатора",     
+     "requestees.login_name"   => "Инициатор согласования",
+     "resolution"              => "Решение",
+     "see_also"                => "Ссылки",
+     "setters.login_name"      => "Исполнитель согласования",
+     "setting"                 => "Настройка",
+     "settings"                => "Настройки",
+     "short_desc"              => "Аннотация",
+     "short_short_desc"        => "Аннотация",     
+     "status_whiteboard"       => "Заметки",
+     "tag"                     => "Условия отбора",     
+     "target_milestone"        => "Запланировано",
+     "version"                 => "Версия",
+     "work_time"               => "Отработано времени",
+  } %]
+
+  [%# Also include any custom fields or fields which don't have a
+      Description here, by copying their Description from the
+      database. If you want to override this for your language
+      or your installation, just use a hook. %]
+  [% UNLESS Param('shutdownhtml') %]
+    [% FOREACH bz_field = bug_fields.values %]
+      [% SET vars.field_descs.${bz_field.name} = bz_field.description
+         IF !vars.field_descs.${bz_field.name}.defined %]
+    [% END %]
+  [% END %]
+
+  [% PROCESS "bug/field-help.none.tmpl" %]
+[% END %]
+
+[% Hook.process("end") %]

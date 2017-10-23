@@ -1,0 +1,91 @@
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+
+[%# INTERFACE:
+  # bug_id: integer. The number of the bug(s).
+  # multiple_bugs: boolean. True if bug_id contains > 1 bug number.
+  # showsummary: boolean. True if we are showing bug summaries.
+  # rankdir: string. "TB" if we are ranking top-to-bottom,
+                     "LR" if left-to-right.
+  # image_url: string. The URL of the graphic showing the dependencies.
+  # map_url: string. The URL of the map file for the image.  (Optional)
+  # image_map: string. The image map for the graphic showing the
+                       dependencies. (Optional)
+  #%]
+
+[% PROCESS global/variables.none.tmpl %]
+
+[% title = "Диаграмма зависимостей"
+   header = title
+ %]
+
+[% IF NOT multiple_bugs %]
+  [% filtered_desc = short_desc FILTER html %]
+  [% title = "$title $terms.bug_gen номер $bug_id"
+     header = "$header для $terms.bug_gen номер <a href=\"show_bug.cgi?id=$bug_id\">$bug_id</a>"
+     subheader = filtered_desc
+   %]
+[% END %]
+
+[% PROCESS global/header.html.tmpl %]
+
+[% image_map %]
+
+<p>
+  Незакрытые [% terms.bugs %] обозначены зеленым цветом.
+</p>
+
+[% IF image_map %]
+  <img src="[% image_url %]" alt="Диаграмма зависимостей" usemap="#imagemap">
+[% ELSE %]
+  <a href="[% map_url %]">
+    <img src="[% image_url %]" alt="Диаграмма зависимостей" ismap="ismap">
+  </a>
+[% END %]
+
+<hr>
+
+<form action="showdependencygraph.cgi" method="GET">
+  <table>
+    <tr>
+      <th align="left"><label for="id">Номера [% terms.bugs_gen %]</label>:</th>
+      <td><input id="id" name="id" value="[% bug_id %]"></td>
+      <td>
+        <input type="checkbox" id="showsummary" name="showsummary" [% " checked" IF showsummary %]>
+        <label for="showsummary">Показать аннотации [% terms.bugs_gen %]</label>
+      </td>
+    </tr>
+
+    <tr>
+      <th align="left"><label for="display">Показать:</label></th>
+      <td colspan="2">
+        <select id="display" name="display">
+          <option value="tree"[% 'selected="selected"' IF (!display || display == "tree") %]>
+            только [% terms.bugs %], непосредственно связанные с перечисленными</option>
+          <option value="web" [% 'selected="selected"' IF display == "web" %]>
+            все [% terms.bugs %], имеющие любые связи с перечисленными</option>
+        </select>
+      </td>
+    </tr>
+
+    <tr>
+      <th align="left"><label for="rankdir">Ориентация:</label></th>
+      <td colspan="2">
+        <select id="rankdir" name="rankdir">
+          <option value="TB"[% " selected" IF rankdir == "TB" %]>сверху вниз</option>
+          <option value="BT"[% " selected" IF rankdir == "BT" %]>снизу вверх</option>
+          <option value="LR"[% " selected" IF rankdir == "LR" %]>слева направо</option>
+          <option value="RL"[% " selected" IF rankdir == "RL" %]>справа налево</option>
+        </select>
+      </td>
+    </tr>
+  </table>
+  <input type="submit" id="change" value="Применить">
+</form>
+
+[% PROCESS global/footer.html.tmpl %]
