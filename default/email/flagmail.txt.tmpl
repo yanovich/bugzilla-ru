@@ -64,11 +64,14 @@ Attachment [% attidsummary %]
 
 [%- FILTER bullet = wrap(80) %]
 
-[% USE Bugzilla %]
-[%-# .defined is necessary to avoid a taint issue in Perl < 5.10.1, see bug 509794. %]
-[% IF Bugzilla.cgi.param("comment").defined && Bugzilla.cgi.param("comment").length > 0 %]
-------- Комментарий пользователя [% user.identity %]
-[%+ Bugzilla.cgi.param("comment") FILTER strip_control_chars %]
+[% FOREACH comment = new_comments %]
+
+[%- IF comment.count %]
+--- Комментарий #[% comment.count %] пользователя [% comment.author.identity %] ---
+[% ELSE %]
+--- Описание ---
+[% END %]
+[%+ comment.body_full({ is_bugmail => 1, wrap => 1 }) FILTER strip_control_chars %]
 [% END %]
 
 [%- END %]
