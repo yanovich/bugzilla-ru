@@ -200,58 +200,6 @@ function PutDescription() {
     </td>
   </tr>
 
-  [%# We override rep_platform and op_sys for simplicity. The values chosen
-      are based on which are most common in the b.m.o database %]
-  [% rep_platform = [ "PC", "Macintosh", "All", "Other" ] %]
-
-  <tr bgcolor="[% tablecolour %]">
-    <td align="right" valign="top">
-      <b>[% field_descs.rep_platform FILTER html %]</b>
-    </td>
-    <td valign="top">
-      [% PROCESS select sel = 'rep_platform' %]
-    </td>
-  </tr>
-
-  [% op_sys = [ "Windows 2000", "Windows XP", "Windows Vista", "Windows 7",
-                "Mac OS X", "Linux", "All", "Other" ] %]
-
-  <tr>
-    <td align="right" valign="top">
-      <b>Операционная система</b>
-    </td>
-    <td valign="top">
-      [% PROCESS select sel = 'op_sys' %]
-    </td>
-  </tr>
-
-  [% IF product.name.match("Firefox|Camino|Mozilla Application Suite") %]
-    [% matches = cgi.user_agent('Gecko/(\d+)') %]
-    [% buildid = cgi.user_agent() IF matches %]
-  [% END %]
-  
-  [%# Accept URL parameter build ID for non-browser products %]
-  [% IF cgi.param("buildid") %]
-    [% buildid = cgi.param("buildid") %]
-  [% END %]
-
-  <tr bgcolor="[% tablecolour %]">
-    <td align="right" valign="top">
-      <b>Идентификатор версии</b>
-    </td>
-    <td valign="top">
-      <input type="text" size="80" name="buildid" value="[% buildid FILTER html %]">
-      <p>
-        Это точное описание объекта, использованного вами в момент [% terms.bug_gen %].
-        Если поле не заполнено или заполнено неверно, скопируйте текст 
-        версии из справки.  В случае Mozilla или Firefox это строка, 
-        начинающаяся с <tt>"Mozilla/5.0"</tt> в меню <tt>Справка | О Mozilla Firefox</tt>.
-        Если программа не запускается вовсе, укажите полный адрес, откуда она была
-        скачана.
-      </p>
-    </td>
-  </tr>
-
   <tr>
     <td align="right" valign="top">
       <b>URL</b>
@@ -259,10 +207,7 @@ function PutDescription() {
     <td valign="top">
       <input type="text" size="80" name="bug_file_loc" value="http://">
       <p>
-        Адрес URL, при обращении к которому возникает проблема (заполнять не обязательно).
-        <b>ВАЖНО</b>: если проблема связана с некорректно созданной страницей,
-        сообщите об этом
-        <a href="https://bugzilla.mozilla.org/page.cgi?id=broken-website.html">другим способом</a>.
+        Адрес URL, связанный с задачей (заполнять не обязательно).
       </p>
    </td>
   </tr>
@@ -275,7 +220,7 @@ function PutDescription() {
       <input type="text" size="80" name="short_desc" id="short_desc" 
              maxlength="255" spellcheck="true">
       <p>
-        Краткое описание проблемы.
+        Краткое описание задачи или проблемы.
         Пожалуйста будьте точны и используйте максимум ключевых слов.
       </p>
       <p>
@@ -302,7 +247,7 @@ function PutDescription() {
         cols    = constants.COMMENT_COLS
       %]
       <p>
-        Подробное описание этой проблемы. Пожалуйста подробно
+        Подробное описание этой задачи или проблемы. Пожалуйста подробно
         опишите, что именно не так.
       </p>
       <p>
@@ -316,110 +261,6 @@ function PutDescription() {
           во время сортировки закладок,<br> исчезли все папки закладок
           первого уровня с именами, начинающимися с Q по Z.
         </tt>
-      </p>
-    </td>
-  </tr>
-
-  <tr bgcolor="[% tablecolour %]">
-    <td align="right" valign="top">
-      <b>Воспроизводимость</b>
-    </td>
-    <td valign="top">
-      <select name="reproducible">
-        <option name="AlwaysReproducible" value="Всегда">
-          Происходит каждый раз.
-        </option>
-        <option name="Sometimes" value="Иногда">
-          Происходит иногда, но не каждый раз.
-        </option>
-        <option name="DidntTry" value="Не пробовали">
-          Не пытались повторить ситуацию.
-        </option>
-        <option name="NotReproducible" value="Не удается">
-          Пытались повторить, безуспешно.
-        </option>
-      </select>
-    </td>
-  </tr>
-
-  <tr>
-    <td align="right" valign="top">
-      <b>Как повторить ситуацию</b>
-    </td>
-    <td valign="top">
-      [% INCLUDE global/textarea.html.tmpl
-        name           = 'reproduce_steps'
-        minrows        = 4
-        cols           = constants.COMMENT_COLS
-        defaultcontent = "1.\n2.\n3."
-      %]
-      <p>
-        Опишите, что необходимо сделать, чтобы возникла проблема.
-        Подробности установки объекта тоже имеют значение.
-      </p>
-    </td>
-  </tr>
-
-  <tr bgcolor="[% tablecolour %]">
-    <td valign="top" align="right">
-      <b>Что происходит</b>
-    </td>
-    <td valign="top">
-      [% INCLUDE global/textarea.html.tmpl
-        name    = 'actual_results'
-        minrows = 4
-        cols    = constants.COMMENT_COLS
-      %]
-      <p>
-        Что именно происходит после выполнения описанных выше шагов?
-      </p>
-    </td>
-  </tr>
-
-  <tr>
-    <td valign="top" align="right">
-      <b>Ожидаемый результат</b>
-    </td>
-    <td valign="top">
-      [% INCLUDE global/textarea.html.tmpl
-        name    = 'expected_results'
-        minrows = 4
-        cols    = constants.COMMENT_COLS
-      %]
-      <p>
-        Что должно было произойти при правильной работе?
-      </p>
-    </td>
-  </tr>
-
-  <tr bgcolor="[% tablecolour %]">
-    <td valign="top" align="right">
-      <b>Дополнительные сведения</b>
-    </td>
-    <td valign="top">
-      [% INCLUDE global/textarea.html.tmpl
-        name    = 'additional_info'
-        minrows = 8
-        cols    = constants.COMMENT_COLS
-      %]
-      <p>
-        Add any additional information you feel may be
-        relevant to this [% terms.bug %], such as the <b>theme</b> you were
-        using (does the [% terms.bug %] still occur
-        with the default theme?), a 
-        <b><a href="http://kb.mozillazine.org/Quality_Feedback_Agent">Talkback crash ID</a></b>, or special
-        information about <b>your computer's configuration</b>. Any information
-        longer than a few lines, such as a <b>stack trace</b> or <b>HTML
-        testcase</b>, should be added
-        using the "Add an Attachment" link on the [% terms.bug %], after
-        it is filed. If you believe that it's relevant, please also include
-        your build configuration, obtained by typing <tt>about:buildconfig</tt>
-        into your URL bar.
-        <br>
-        <br>
-        If you are reporting a crash, note the module in
-        which the software crashed (e.g., <tt>Application Violation in
-        gkhtml.dll</tt>).
       </p>
     </td>
   </tr>
@@ -472,16 +313,7 @@ function PutDescription() {
 </p>
 
 <p>
-  Готово.  Большое спасибо!  Обо всех изменениях по существу [% terms.bug_gen %]
-  будут отправлены оповещения по электронной почте.
-
-<p>  
-  Пожалуйста примите к сведению, что мы обрабатываем
-  большое количество [% terms.bugs_gen %] - может пройти некоторое время
-  до передачи [% terms.bug_gen %]в работу.  Ваша помощь заключается в 
-  предоставлении полной информации в понятной форме и 
-  в своевременных ответах на вопросы, которые могут поступить
-  по электронной почте.
+  Готово.
 </p>
 
     </form>

@@ -117,9 +117,7 @@ TUI_hide_default('information_query');
     [% IF user.is_timetracker %] [%+ field_descs.deadline FILTER html %], [%+ END %]
     Номер [% terms.bug_gen %], [%+ field_descs.version FILTER html %], 
     [% IF Param('usetargetmilestone') %] [%+ field_descs.target_milestone FILTER html %], [%+ END %]
-    [% field_descs.bug_severity FILTER html %], [%+ field_descs.priority FILTER html %], [%+ field_descs.rep_platform FILTER html %], 
-    [%+ field_descs.op_sys FILTER html %]
-  </span>
+    [% field_descs.bug_severity FILTER html %], [%+ field_descs.priority FILTER html %]  </span>
 </div>
 [%# *** Comment URL Whiteboard Keywords *** %]
 <div id="detailed_information_section" class="bz_search_section information_query">
@@ -183,20 +181,6 @@ TUI_hide_default('information_query');
   [%# *** Status Resolution Severity Priority Hardware OS *** %]
   <div>
     [% Hook.process('before_selects_bottom') %]
-    [% fake_version_field = { name => bug_fields.version.name,
-                              type => constants.FIELD_TYPE_SINGLE_SELECT }%]
-    [% INCLUDE "search/field.html.tmpl" 
-          field => fake_version_field
-          value => default.version
-    %]                              
-    [% IF Param('usetargetmilestone') %]
-        [% fake_target_milestone_field = { name => bug_fields.target_milestone.name , 
-                                           type => constants.FIELD_TYPE_SINGLE_SELECT } %]
-        [% INCLUDE "search/field.html.tmpl" 
-              field => fake_target_milestone_field
-              value => default.target_milestone
-        %]
-    [% END %]
     [% INCLUDE "search/field.html.tmpl" 
           field => bug_fields.bug_severity
           accesskey=> "v" 
@@ -207,16 +191,6 @@ TUI_hide_default('information_query');
          accesskey => "i"
          value => default.priority
     %]    
-    [% INCLUDE "search/field.html.tmpl" 
-        field => bug_fields.rep_platform 
-        accesskey =>"h"
-        value => default.rep_platform
-    %]               
-    [% INCLUDE "search/field.html.tmpl" 
-        field => bug_fields.op_sys 
-        accesskey =>"o"
-        value => default.op_sys
-    %]               
     [% Hook.process('after_selects_bottom') %]
   </div>
 </div>
