@@ -52,26 +52,24 @@
   [% Hook.process('current_state') %]
 </ul>
 
-[% IF feature_enabled('new_charts') OR feature_enabled('old_charts') %]
-  <h2>Динамика изменений</h2>
+  <h2>Выполнение плана за текущий месяц</h2>
+  <a href="current_task.cgi">4.1.3 Выполнение текущих производственных задач</a><br/>
+  <a href="current_task_groups.cgi">4.1.3 Выполнение текущих производственных задач (По группам)</a><br/>
+  <p />
+  <a href="current_docs.cgi">4.1.4 Выполнение плана подготовки исполнительной документации</a><br/>
+  <a href="current_docs_groups.cgi">4.1.4 Выполнение плана подготовки исполнительной документации (По группам)</a><br/>
+  <p />
+  <a href="current_docs_groups_10.cgi">4.1.5 Исполнение обязательств по платежам (По группам)</a><br/>
+  <a href="current_docs_sum.cgi">4.1.5 Исполнение обязательств по платежам (По группам и суммам)</a><br/>
+  <p />
+  <a href="current_docs_list.cgi?action=accept">Список задач с приёмкой текущего пользователя</a><br/>
+  [% IF user.id == 6 %]
+    <p />
+    <p />
+    <a href="current_change_data.cgi">Изменение сроков дэдлайна</a><br/>
+    <a href="current_deadline_null.cgi">Список задач, у кооторых deadline не существует</a><br/>
+  [% END %]
 
-  <ul>
-    [% IF feature_enabled('old_charts') %]
-      <li id="old_charts">
-        <strong><a href="reports.cgi">Старый способ</a></strong> - 
-        графики состояний и решений [% terms.bugs_gen %] вдоль 
-        оси времени, для каждого объекта.
-      </li>
-    [% END %]
-    [% IF feature_enabled('new_charts') AND user.in_group(Param("chartgroup")) %]
-      <li id="new_charts">
-        <strong><a href="chart.cgi">Новый способ</a></strong> - 
-        результат любого условия отбора во времени. Гораздо более 
-        мощный инструмент.
-      </li>
-    [% END %]
-  </ul>
-[% END %]
 
 [% Hook.process('end') %]
 

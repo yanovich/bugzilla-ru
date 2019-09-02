@@ -1,0 +1,89 @@
+[% PROCESS global/variables.none.tmpl %]
+
+[% PROCESS global/header.html.tmpl 
+  title = "Исполнение обязательств по платежам (По группам и суммам)"
+  style_urls = [ "skins/standard/search_form.css" ]  
+%]
+
+
+
+<form name="f" method="get" action="current_docs_sum.cgi">
+<input type="hidden" name="action" value="list" />
+<label for="matchYear">Год</label>
+<input type="number" min="2016" max="2030" size="4" name="matchYear" id="matchYear" value=[% year %] />
+<label for="matchMonth">Месяц</label>
+<input type="number" min="01" max="12" size="2" name="matchMonth" id="matchMonth" value=[% month %] />
+<input type="submit" id="search" value="Найти" /></p>
+
+</form>
+
+<b>с [% std_begin_date %] по [% std_end_date %]</b>
+<table class="main" border="1">
+<tr>
+	<td>Наименование</td>
+  <td>Nф1</td>
+  <td>Nф2</td>
+  <td>Nф3</td>
+  <td>Nф4</td>
+  <td>Ни</td>
+  <td>||</td>
+  <td>Nфакт</td>
+  <td>Nни</td>
+  <td>Nно</td>
+  <td>К</td>
+  <td>КПЭ, %</td> 
+
+</tr>
+[% FOREACH ss = compt %]
+[% Nfakt = ss.nf1 + ss.nf2 + ss.nf4 %]
+[% Nno = ss.nf4 + ss.nf3 %]
+[% Nni = ss.nf1 + ss.nf2 - ss.nf3 - ss.ni FILTER format("%.2f") %]
+  [% IF ss.nf1 < 0.01 %]
+    [% koeff = 1 %]
+  [% ELSE %]
+    [% koeff = 0.5 %]
+  [% END %]
+
+  [% IF Nfakt == 0 %]
+    [% result = 0 %]
+  [% ELSE %]
+    [% result = (14 * (1 - Nni / Nfakt) + (1 - Nno / Nfakt)) * koeff %]
+  [% END %]
+
+[% values1 = "current_docs_list.cgi?action=gnf1s&matchValue=$ss.id&matchYear=$year&matchMonth=$month" %]
+[% values2 = "current_docs_list.cgi?action=gnf2s&matchValue=$ss.id&matchYear=$year&matchMonth=$month" %]
+[% values3 = "current_docs_list.cgi?action=gnf3s&matchValue=$ss.id&matchYear=$year&matchMonth=$month" %]
+[% values4 = "current_docs_list.cgi?action=gnf4s&matchValue=$ss.id&matchYear=$year&matchMonth=$month" %]
+[% values5 = "current_docs_list.cgi?action=gnis&matchValue=$ss.id&matchYear=$year&matchMonth=$month" %]
+
+<tr>
+	<td>[% ss.realname %]</td>
+  <td><a href=[% values1 %] >[% ss.nf1 %]</a></td>
+  <td><a href=[% values2 %] >[% ss.nf2 %]</a></td>
+  <td><a href=[% values3 %] >[% ss.nf3 %]</a></td>
+  <td><a href=[% values4 %] >[% ss.nf4 %]</a></td>
+  <td><a href=[% values5 %] >[% ss.ni %]</a></td>
+  <td>||</td>
+  <td>[% Nfakt %]</td>
+  <td>[% Nni %]</td>
+  <td>[% Nno %]</td>
+  <td>[% koeff %]</td>
+  <td>[% result FILTER format("%.2f") %]</td>
+</tr>
+[% END %]
+</table>
+<br/>
+<ul>
+  <li>Nф1 = Сумма всех незакрытые задачи на начало отчетного периода;</li>
+  <li>Nф2 = Сумма задач за отчетный период;</li>
+  <li>Nф3 = Сумма задач отчетного периода, решенных с нарушением сроков;</li>
+  <li>Nф4 = Сумма просроченных задачи, решенных в текущем отчетном периоде;</li>
+  <li>Ни =  Сумма задач, решенных в текущем отчетном периоде в срок.</li>
+
+  <li>Nфакт = Nф1 + Nф2 + Нф4 Сумма платежей, контрольные сроки исполнения которых завершается в отчетном периоде;</li>
+  <li>Нни = Нфакт - Ни - Нно Сумма платежей, которые не исполнены в отчетном периоде;</li>
+  <li>Нно = Нф3 + Нф4 Сумма плетежей, которые исполнены в отчетном периоде с нарушением сроков исполнения.</li>
+</ul>
+
+
+[% PROCESS global/footer.html.tmpl %]

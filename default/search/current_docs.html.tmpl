@@ -1,0 +1,87 @@
+[% PROCESS global/variables.none.tmpl %]
+
+[% PROCESS global/header.html.tmpl 
+  title = "Выполнение плана подготовкии исполнительной документации"
+  style_urls = [ "skins/standard/search_form.css" ]  
+%]
+
+
+
+<form name="f" method="get" action="current_docs.cgi">
+<input type="hidden" name="action" value="list" />
+<label for="matchYear">Год</label>
+<input type="number" min="2016" max="2030" size="4" name="matchYear" id="matchYear" value=[% year %] />
+<label for="matchMonth">Месяц</label>
+<input type="number" min="01" max="12" size="2" name="matchMonth" id="matchMonth" value=[% month %] />
+<input type="submit" id="search" value="Найти" /></p>
+
+</form>
+
+<b>с [% std_begin_date %] по [% std_end_date %]</b>
+<table class="main" border="1">
+<tr>
+	<td>ФИО</td>
+  <td>Nф1</td>
+  <td>Nф2</td>
+  <td>Nф3</td>
+  <td>Nф4</td>
+  <td>Nи</td>
+  <td>||</td>
+  <td>Nфакт</td>
+  <td>Nни</td>
+  <td>Nно</td>
+  <td>К</td>
+  <td>КПЭ, %</td> 
+
+</tr>
+[% FOREACH ss = compt %]
+[% Nfakt = (ss.nf1 + ss.nf2 + ss.nf4) %]
+[% Nni = (ss.nf1 + ss.nf2) - ss.nf3 - ss.ni %]
+[% Nno = (ss.nf4 + ss.nf3) %]
+  [% IF ss.nf1 == 0 %]
+    [% koeff = 1 %]
+  [% ELSE %]
+    [% koeff = 0.5 %]
+  [% END %]
+
+  [% IF Nfakt == 0 %]
+    [% result = 0 %]
+  [% ELSE %]
+    [% result = (8 * (1 - Nni / Nfakt) + 2 * (1 - Nno / Nfakt)) * koeff %]
+  [% END %]
+
+[% values1 = "current_docs_list.cgi?action=nf1&matchValue=$ss.id&matchYear=$year&matchMonth=$month" %]
+[% values2 = "current_docs_list.cgi?action=nf2&matchValue=$ss.id&matchYear=$year&matchMonth=$month" %]
+[% values3 = "current_docs_list.cgi?action=nf3&matchValue=$ss.id&matchYear=$year&matchMonth=$month" %]
+[% values4 = "current_docs_list.cgi?action=nf4&matchValue=$ss.id&matchYear=$year&matchMonth=$month" %]
+[% values5 = "current_docs_list.cgi?action=ni&matchValue=$ss.id&matchYear=$year&matchMonth=$month" %]
+<tr>
+	<td>[% ss.realname %]</td>
+  <td><a href=[% values1 %] >[% ss.nf1 %]</a></td>
+  <td><a href=[% values2 %] >[% ss.nf2 %]</a></td>
+  <td><a href=[% values3 %] >[% ss.nf3 %]</a></td>
+  <td><a href=[% values4 %] >[% ss.nf4 %]</a></td>
+  <td><a href=[% values5 %] >[% ss.ni %]</a></td>
+  <td>||</td>
+  <td> [% Nfakt %]</td>
+  <td>[% Nni %]</td>
+  <td>[% Nno %]</td>
+  <td>[% koeff %]</td>
+  <td>[% result FILTER format("%.2f") %]</td>
+</tr>
+[% END %]
+</table>
+<ul>
+  <li>Nф1 = Все незакрытые задачи на начало отчетного периода;</li>
+  <li>Nф2 = Кол-во задач за отчетный период;</li>
+  <li>Nф3 = Задачи отчетного периода, решенные с нарушением сроков;</li>
+  <li>Nф4 = Просроченные задачи, решенные в текущем отчетном периоде;</li>
+  <li>Ни = Задачи, решенные в текущем отчетном периоде в срок.</li>
+
+  <li>Nфакт = Nф1 + Nф2 + Нф4 количество комплектов исполнительной документации, срок подготовки которых в соответствии с планом подготовки исполнительной документации завершается в отчетном периоде;</li>
+  <li>Нни = Нфакт - Ни - Нно Количество комплектов исполнительной документации, которое не подготовлено в отчетном периоде;</li>
+  <li>Нно = Нф3 + Нф4 Количество подготовленных комплектов исполнительной документации, которое предъявлено в отчетном периоде с нарушением сроков исполнения.</li>
+</ul>
+
+
+[% PROCESS global/footer.html.tmpl %]

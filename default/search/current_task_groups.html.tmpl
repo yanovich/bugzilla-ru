@@ -1,0 +1,48 @@
+[% PROCESS global/variables.none.tmpl %]
+
+[% PROCESS global/header.html.tmpl 
+  title = "Выполнение текущих производственных задач (По группам)"
+  style_urls = [ "skins/standard/search_form.css" ]  
+%]
+
+
+
+<form name="f" method="get" action="current_task_groups.cgi">
+<input type="hidden" name="action" value="list" />
+<label for="matchYear">Год</label>
+<input type="number" min="2016" max="2030" size="4" name="matchYear" id="matchYear" value=[% year %] />
+<label for="matchMonth">Месяц</label>
+<input type="number" min="01" max="12" size="2" name="matchMonth" id="matchMonth" value=[% month %] />
+<input type="submit" id="search" value="Найти" /></p>
+
+</form>
+
+<b>с [% std_begin_date %] по [% std_end_date %]</b>
+<table class="main" border="1">
+<tr>
+	<td>Наименование</td>
+  <td>Не выполнено</td>
+  <td>Выполнено</td>
+  <td>Всего задач</td>
+  <td>%</td>
+</tr>
+[% FOREACH cсс = compt %]
+<tr>
+  [% IF cсс.all == 0 %]
+    [% result = 0 %]
+  [% ELSE %]
+    [% result = (cсс.resolved / cсс.all)*5 %]
+  [% END %]
+  [% values1 = "current_docs_list.cgi?action=gnotresolved&matchValue=$cсс.id&matchYear=$year&matchMonth=$month" %]
+  [% values2 = "current_docs_list.cgi?action=gresolved&matchValue=$cсс.id&matchYear=$year&matchMonth=$month" %]
+  [% values3 = "current_docs_list.cgi?action=gall&matchValue=$cсс.id&matchYear=$year&matchMonth=$month" %]
+  <td>[% cсс.realname %]</td>
+  <td><a href=[% values1 %] >[% cсс.notresolved %]</a></td>
+  <td><a href=[% values2 %] >[% cсс.resolved %]</a></td>
+  <td><a href=[% values3 %] >[% cсс.all %]</a></td>
+  <td>[% result FILTER format("%.2f") %]</td>
+</tr>
+[% END %]
+</table>
+
+[% PROCESS global/footer.html.tmpl %]

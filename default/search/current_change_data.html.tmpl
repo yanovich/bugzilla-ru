@@ -1,0 +1,58 @@
+[% PROCESS global/variables.none.tmpl %]
+
+[% PROCESS global/header.html.tmpl 
+  title = "Изменение сроков"
+  style_urls = [ "skins/standard/search_form.css" ]  
+%]
+
+
+
+<form name="f" method="get" action="current_change_data.cgi">
+<input type="hidden" name="action" value="list" />
+<label for="matchYear">Год</label>
+<input type="number" min="2016" max="2030" size="4" name="matchYear" id="matchYear" value=[% year %] />
+<label for="matchMonth">Месяц</label>
+<input type="number" min="01" max="12" size="2" name="matchMonth" id="matchMonth" value=[% month %] />
+<input type="submit" id="search" value="Найти" /></p>
+
+</form>
+<b>с [% std_begin_date %]</b>
+[% sortUserID = "current_change_data.cgi?action=list&matchYear=$year&matchMonth=$month&order=userid" %]
+[% sortRealName = "current_change_data.cgi?action=list&matchYear=$year&matchMonth=$month&order=realname" %]
+[% sortBugId = "current_change_data.cgi?action=list&matchYear=$year&matchMonth=$month&order=bugid" %]
+[% sortBug = "current_change_data.cgi?action=list&matchYear=$year&matchMonth=$month&order=bug" %]
+[% sortWhen = "current_change_data.cgi?action=list&matchYear=$year&matchMonth=$month&order=when" %]
+[% sortRemoved = "current_change_data.cgi?action=list&matchYear=$year&matchMonth=$month&order=removed" %]
+[% sortAdded = "current_change_data.cgi?action=list&matchYear=$year&matchMonth=$month&order=added" %]
+
+<table class="main" border="1">
+<tr>
+  <td><a href=[% sortUserID %] >User ID</a></td>
+  <td><a href=[% sortRealName %] >Исполнитель</a></td>
+  <td><a href=[% sortBugId %] >ID объекта</a></td>
+  <td><a href=[% sortBug %] >Объект</a></td>
+  <td><a href=[% sortWhen %] >Изменение</a></td>
+  <td width="100"><a href=[% sortRemoved %] >Пред. дата</a></td>
+  <td width="100"><a href=[% sortAdded %] >Новая дата</a></td>
+</tr>
+[% FOREACH ss = compt %]
+
+[% values = "show_bug.cgi?id=$ss.bug_id" %]
+[% valuesUser = "editusers.cgi?action=edit&userid=$ss.id" %]
+
+<tr>
+  <td><a href=[% valuesUser %] >[% ss.id %]</a></td>
+  <td><a href=[% valuesUser %] >[% ss.realname %]</a></td>
+  <td><a href=[% values %] >[% ss.bug_id %]</a></td>
+  <td>[% ss.desc %]</td>
+  <td>[% ss.bug_when %]</td>
+  <td>[% ss.removed %]</td>
+  <td>[% ss.added %]</td>
+</tr>
+[% END %]
+</table>
+<br/>
+
+
+
+[% PROCESS global/footer.html.tmpl %]

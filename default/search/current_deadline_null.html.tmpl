@@ -1,0 +1,48 @@
+[% PROCESS global/variables.none.tmpl %]
+
+[% PROCESS global/header.html.tmpl 
+  title = "Список задач, у кооторых deadline не существует"
+  style_urls = [ "skins/standard/search_form.css" ]  
+%]
+
+<table class="main" border="1">
+<tr>
+  <td><a href=[% sortID %] >ID</a></td>
+  <td><a href=[% sortProduct %] >Объект</a></td>
+  <td><a href=[% sortComponent %] >Раздел</a></td>
+  <td><a href=[% sortRealName %] >Исполнитель</a></td>
+  <td><a href=[% sortStatus %] >Состояние</a></td>
+  <td><a href=[% sortDesc %] >Аннотация</a></td>
+</tr>
+[% FOREACH ss = compt %]
+[% status = ss.status %]
+[% values = "show_bug.cgi?id=$ss.bug_id" %]
+
+[% SWITCH ss.status %]
+  [%   CASE 'CONFIRMED' %]
+      [% status = 'Подтвержденная' %]
+  [%   CASE 'UNCONFIRMED' %]   
+        [% status = 'Неподтвержденная' %]
+  [%   CASE 'VERIFIED' %]   
+        [% status = 'Принята' %]        
+  [%   CASE 'RESOLVED' %]   
+        [% status = 'Решена' %]
+  [%   CASE ['IN_PROGRESS', 'IN PROGRESS'] %]            
+        [% status = 'Решается' %]
+  [%   CASE %]                        # default
+        [% status = ss.status %]
+[% END %]
+
+<tr>
+  <td><a href=[% values %] >[% ss.bug_id %]</a></td>
+  <td>[% ss.product %]</td>
+  <td>[% ss.component %]</td>
+  <td>[% ss.realname %]</td>
+  <td>[% status %]</td>
+  <td>[% ss.desc %]</td>
+</tr>
+[% END %]
+</table>
+<br/>
+
+[% PROCESS global/footer.html.tmpl %]
